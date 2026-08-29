@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شجرۂ طیبہ ساداتِ ہاشمیہ چشتیہ</title>
+    
+    <!-- External CSS & Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    
+    <!-- Google Fonts for Urdu & Arabic Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&family=Reem+Kufi:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-primary: #060b17;
+            --bg-secondary: #0d1527;
+            --card-bg: rgba(13, 21, 39, 0.94);
+            --gold-primary: #d4af37;
+            --gold-light: #fef08a;
+            --gold-dark: #854d0e;
+            --emerald-glow: #10b981;
+            --blue-pottery: #1e3a8a;
+            --text-gold: #fde68a;
+            --text-light: #f8fafc;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-light);
+            font-family: 'Noto Nastaliq Urdu', 'Amiri', serif;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(30, 58, 138, 0.35) 0%, transparent 75%),
+                radial-gradient(circle at 90% 85%, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 10% 90%, rgba(16, 185, 129, 0.05) 0%, transparent 45%);
+            background-attachment: fixed;
+            overflow-x: hidden;
+        }
+
+        .font-nastaliq {
+            font-family: 'Noto Nastaliq Urdu', serif;
+            line-height: 2.3;
+        }
+
+        .font-kufi {
+            font-family: 'Reem Kufi', sans-serif;
+        }
+
+        .font-amiri {
+            font-family: 'Amiri', serif;
+        }
+
+        /* Custom Persian Manuscript Scrollbars */
+        ::-webkit-scrollbar {
+            width: 7px;
+            height: 7px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #080f20;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #243552;
+            border-radius: 4px;
+            border: 1px solid var(--gold-dark);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gold-primary);
+        }
+
+        .glass-panel {
+            background: rgba(13, 22, 43, 0.88);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+        }
+
+        .shajra-card {
+            background: linear-gradient(145deg, rgba(17, 28, 52, 0.95), rgba(9, 15, 29, 0.98));
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .shajra-card:hover {
+            border-color: var(--gold-primary);
+            box-shadow: 0 10px 25px rgba(212, 175, 55, 0.22);
+            transform: translateY(-2px);
+        }
+
+        .node-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .node-card rect.node-bg {
+            fill: #0b1329;
+            stroke: #d4af37;
+            stroke-width: 1.5px;
+            rx: 12px;
+            ry: 12px;
+            filter: drop-shadow(0px 4px 10px rgba(0, 0, 0, 0.6));
+            transition: all 0.3s ease;
+        }
+
+        .node-card:hover rect.node-bg {
+            stroke: #fef08a;
+            stroke-width: 2.5px;
+            fill: #162447;
+            filter: drop-shadow(0px 0px 16px rgba(212, 175, 55, 0.7));
+        }
+
+        .node-card.highlighted rect.node-bg {
+            stroke: #10b981 !important;
+            stroke-width: 3px !important;
+            fill: #064e3b !important;
+            filter: drop-shadow(0px 0px 20px rgba(16, 185, 129, 0.85));
+        }
+
+        .node-card.prophet-node rect.node-bg {
+            stroke: #f59e0b !important;
+            stroke-width: 3.5px !important;
+            fill: #451a03 !important;
+            filter: drop-shadow(0px 0px 28px rgba(245, 158, 11, 0.95));
+        }
+
+        .node-card.main-lineage-node rect.node-bg {
+            stroke: #fef08a !important;
+            stroke-width: 2.8px !important;
+            fill: #064e3b !important;
+            filter: drop-shadow(0px 0px 20px rgba(245, 158, 11, 0.9));
+        }
+
+        .node-card.shrine-node rect.node-bg {
+            stroke: #06b6d4 !important;
+            stroke-width: 2.5px !important;
+            fill: #083344 !important;
+            filter: drop-shadow(0px 0px 18px rgba(6, 182, 212, 0.75));
+        }
+
+        .node-card.founder-node rect.node-bg {
+            stroke: #eab308 !important;
+            stroke-width: 2.5px !important;
+            fill: #3b0764 !important;
+            filter: drop-shadow(0px 0px 18px rgba(234, 179, 8, 0.75));
+        }
+
+        .link-path {
+            fill: none;
+            stroke: rgba(212, 175, 55, 0.35);
+            stroke-width: 2px;
+            transition: all 0.4s ease;
+        }
+
+        .link-path.active-path {
+            stroke: #10b981 !important;
+            stroke-width: 3.5px !important;
+            stroke-dasharray: 6 3;
+            animation: dash 1.4s linear infinite;
+            filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.9));
+        }
+
+        .link-path.main-lineage-link {
+            stroke: #f59e0b !important;
+            stroke-width: 4px !important;
+            stroke-dasharray: 8 4;
+            animation: mainGlowBeam 1.8s linear infinite;
+            filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.95)) drop-shadow(0 0 20px rgba(16, 185, 129, 0.8));
+        }
+
+        @keyframes dash {
+            to { stroke-dashoffset: -24; }
+        }
+
+        @keyframes mainGlowBeam {
+            to { stroke-dashoffset: -36; }
+        }
+
+        .scrollbar-none::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-none {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        #tree-container svg {
+            touch-action: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header / Navigation Bar -->
+    <header class="glass-panel sticky top-0 z-40 border-b border-amber-500/30 px-3 md:px-5 py-2.5 shadow-2xl">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+            
+            <!-- Title & Badge -->
+            <div class="text-center md:text-right flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 md:w-12 md:h-12 rounded-2xl border-2 border-amber-400/80 flex items-center justify-center bg-amber-950/60 text-amber-300 text-lg md:text-xl font-kufi shadow-lg shrink-0">
+                        <i class="fa-solid fa-tree-city"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-base md:text-xl lg:text-2xl font-bold text-amber-200 font-nastaliq leading-tight">
+                            شجرۂ طیبہ ساداتِ ہاشمیہ چشتیہ
+                        </h1>
+                        <p class="text-[10px] md:text-xs text-amber-300/80 font-amiri">
+                            از خاتم النبیین حضرت محمد مصطفیٰ ﷺ تا حال
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Dataset Selector (Shajra-e-Nasab vs Other Family Branches) -->
+                <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-amber-500/40 text-xs shrink-0">
+                    <button id="mode-btn-shajra" onclick="setDatasetMode('shajra')" class="px-2.5 py-1 rounded-lg bg-amber-600 text-amber-950 font-bold transition font-nastaliq shadow">
+                        شجرہ نسب (۴۶ نسلیں)
+                    </button>
+                    <button id="mode-btn-pillars" onclick="setDatasetMode('pillars')" class="px-2.5 py-1 rounded-lg text-amber-300 hover:text-white transition font-nastaliq">
+                        دیگر خاندان (266 ارکان)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Scrollable Navigation Tabs for Mobile & Desktop -->
+            <div class="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-none snap-x">
+                <button id="btn-tree-view" onclick="switchTab('tree')" class="snap-start px-3 py-1.5 rounded-xl text-xs md:text-sm font-medium bg-amber-600 text-amber-950 font-bold shadow-md hover:bg-amber-500 transition flex items-center gap-1.5 whitespace-nowrap shrink-0">
+                    <i class="fa-solid fa-diagram-project"></i>
+                    <span>نقشۂ شجرہ</span>
+                </button>
+                <button id="btn-chain-view" onclick="switchTab('chain')" class="snap-start px-3 py-1.5 rounded-xl text-xs md:text-sm font-medium bg-slate-900 text-amber-200 hover:bg-slate-800 transition flex items-center gap-1.5 border border-amber-500/30 whitespace-nowrap shrink-0">
+                    <i class="fa-solid fa-link"></i>
+                    <span>سلسلہ نسب</span>
+                </button>
+                <button id="btn-directory-view" onclick="switchTab('directory')" class="snap-start px-3 py-1.5 rounded-xl text-xs md:text-sm font-medium bg-slate-900 text-amber-200 hover:bg-slate-800 transition flex items-center gap-1.5 border border-amber-500/30 whitespace-nowrap shrink-0">
+                    <i class="fa-solid fa-address-book"></i>
+                    <span>فہرست ڈائریکٹری</span>
+                </button>
+                <button id="btn-stats-view" onclick="switchTab('stats')" class="snap-start px-3 py-1.5 rounded-xl text-xs md:text-sm font-medium bg-slate-900 text-amber-200 hover:bg-slate-800 transition flex items-center gap-1.5 border border-amber-500/30 whitespace-nowrap shrink-0">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>احصائیات</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Filter and Quick Search Sub-Header -->
+    <section class="bg-slate-950/90 border-b border-amber-500/20 px-3 md:px-5 py-2 shadow-md">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2.5 text-xs">
+            
+            <!-- Search Autocomplete Input -->
+            <div class="relative w-full md:w-80">
+                <div class="relative flex items-center">
+                    <input type="text" id="search-input" placeholder="نام، لقب، شاخ یا مزار تلاش کریں..." 
+                           class="w-full bg-slate-900 text-amber-100 placeholder-amber-400/50 rounded-xl px-3 py-1.5 pr-9 border border-amber-500/40 focus:outline-none focus:border-amber-400 font-nastaliq text-xs"
+                           oninput="onSearchInput(this.value)">
+                    <i class="fa-solid fa-magnifying-glass absolute right-3 text-amber-400"></i>
+                </div>
+                <div id="search-results" class="absolute right-0 left-0 top-full mt-1 bg-slate-900 border border-amber-500/40 rounded-xl shadow-2xl max-h-60 overflow-y-auto hidden z-50"></div>
+            </div>
+
+            <!-- Filters & Lineage Buttons -->
+            <div class="flex items-center gap-2 w-full md:w-auto overflow-x-auto scrollbar-none pb-1 md:pb-0">
+                <!-- Highlight Main Lineage Button -->
+                <button onclick="highlightMainLineage()" class="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-400/60 hover:bg-amber-500 hover:text-amber-950 font-bold transition flex items-center gap-1.5 text-xs font-nastaliq whitespace-nowrap shrink-0 shadow-lg">
+                    <i class="fa-solid fa-bolt text-amber-400"></i>
+                    <span>مرکزی سلسلہ روشن کریں</span>
+                </button>
+
+                <!-- Branch / Family Filter -->
+                <div class="flex items-center gap-1 shrink-0">
+                    <label id="filter-label" class="text-amber-300 whitespace-nowrap font-nastaliq text-xs">سلسلہ / شاخ:</label>
+                    <select id="branch-select" onchange="filterBranch(this.value)" class="bg-slate-900 text-amber-200 border border-amber-500/40 rounded-lg px-2 py-1 focus:outline-none focus:border-amber-400 text-xs font-nastaliq">
+                        <option value="ALL">تمام شاخیں</option>
+                    </select>
+                </div>
+
+                <!-- Generation Filter -->
+                <div class="flex items-center gap-1 shrink-0">
+                    <label class="text-amber-300 whitespace-nowrap font-nastaliq text-xs">نسل / دور:</label>
+                    <select id="generation-select" onchange="filterGeneration(this.value)" class="bg-slate-900 text-amber-200 border border-amber-500/40 rounded-lg px-2 py-1 focus:outline-none focus:border-amber-400 text-xs">
+                        <option value="ALL">تمام ادوار</option>
+                    </select>
+                </div>
+
+                <!-- Reset Controls -->
+                <button onclick="resetTree()" class="px-2.5 py-1.5 rounded-xl bg-amber-950/60 text-amber-300 border border-amber-500/40 hover:bg-amber-800/60 transition flex items-center gap-1 text-xs shrink-0">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span>ری سیٹ</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 relative overflow-hidden flex flex-col">
+
+        <!-- VIEW 1: Interactive D3 Tree View -->
+        <div id="view-tree" class="w-full h-full flex-1 relative min-h-[500px] h-[calc(100vh-140px)] bg-slate-950">
+            <!-- Canvas HUD Floating Toolbar -->
+            <div class="absolute top-3 right-3 z-20 flex flex-col gap-2 glass-panel p-1.5 rounded-2xl shadow-2xl border border-amber-500/30">
+                <button onclick="zoomIn()" title="زوم ان" class="w-10 h-10 md:w-9 md:h-9 rounded-xl bg-slate-800 text-amber-300 hover:bg-amber-600 hover:text-amber-950 transition flex items-center justify-center font-bold active:scale-95 shadow">
+                    <i class="fa-solid fa-plus text-base"></i>
+                </button>
+                <button onclick="zoomOut()" title="زوم آؤٹ" class="w-10 h-10 md:w-9 md:h-9 rounded-xl bg-slate-800 text-amber-300 hover:bg-amber-600 hover:text-amber-950 transition flex items-center justify-center font-bold active:scale-95 shadow">
+                    <i class="fa-solid fa-minus text-base"></i>
+                </button>
+                <button onclick="fitTreeScreen()" title="اسکرین پر فٹ کریں" class="w-10 h-10 md:w-9 md:h-9 rounded-xl bg-slate-800 text-amber-300 hover:bg-amber-600 hover:text-amber-950 transition flex items-center justify-center active:scale-95 shadow">
+                    <i class="fa-solid fa-expand text-base"></i>
+                </button>
+                <button onclick="highlightMainLineage()" title="مرکزی سلسلہ روشن کریں" class="w-10 h-10 md:w-9 md:h-9 rounded-xl bg-amber-950 text-amber-300 hover:bg-amber-500 hover:text-amber-950 transition flex items-center justify-center border border-amber-500/40 active:scale-95 shadow">
+                    <i class="fa-solid fa-bolt text-amber-400"></i>
+                </button>
+                <button onclick="clearPathHighlight()" title="ہائی لائٹ صاف کریں" class="w-10 h-10 md:w-9 md:h-9 rounded-xl bg-slate-800 text-emerald-400 hover:bg-emerald-600 hover:text-white transition flex items-center justify-center active:scale-95 shadow">
+                    <i class="fa-solid fa-rotate-left text-base"></i>
+                </button>
+            </div>
+
+            <!-- Active Ancestry Banner -->
+            <div id="ancestry-banner" class="absolute bottom-4 right-4 left-4 md:left-auto md:right-4 max-w-xl z-20 hidden glass-panel p-3.5 rounded-2xl border border-emerald-500/50 shadow-2xl text-xs font-nastaliq">
+                <div class="flex items-center justify-between gap-3 text-emerald-300 font-bold mb-1.5">
+                    <span class="flex items-center gap-2">
+                        <i class="fa-solid fa-sitemap"></i>
+                        <span>شجرۂ نسب از سرورِ کائنات ﷺ</span>
+                    </span>
+                    <button onclick="clearPathHighlight()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-sm"></i></button>
+                </div>
+                <div id="ancestry-banner-text" class="text-amber-100 text-xs leading-relaxed max-h-28 overflow-y-auto pr-1"></div>
+            </div>
+
+            <!-- SVG Container -->
+            <div id="tree-container" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
+        </div>
+
+        <!-- VIEW 2: Lineage Chain View (شجرہ خوان) -->
+        <div id="view-chain" class="w-full h-full flex-1 p-4 md:p-8 hidden overflow-y-auto">
+            <div class="max-w-4xl mx-auto space-y-6">
+                <!-- Person Selector -->
+                <div class="glass-panel p-6 rounded-2xl border border-amber-500/40 shadow-2xl">
+                    <h2 class="text-xl font-bold text-amber-300 font-nastaliq mb-2 flex items-center gap-3">
+                        <i class="fa-solid fa-scroll text-amber-400"></i>
+                        <span>مکمل سلسلہ نسب (شجرہ خوان)</span>
+                    </h2>
+                    <p class="text-xs text-amber-200/70 mb-4 font-amiri">
+                        شخصیت کا انتخاب کریں تاکہ سرورِ کائنات حضرت محمد مصطفیٰ ﷺ تک ۴۶ نسلوں پر مشتمل تسلسل تحریری صورت میں اخذ کیا جا سکے۔
+                    </p>
+                    <div class="flex flex-col md:flex-row items-center gap-3">
+                        <select id="chain-person-select" onchange="generateLineageChain(this.value)" class="w-full bg-slate-950 text-amber-100 border border-amber-500/40 rounded-xl p-3 focus:outline-none focus:border-amber-400 font-nastaliq text-sm">
+                            <option value="">-- شخصیت منتخب کریں --</option>
+                        </select>
+                        <button onclick="copyLineageText()" class="w-full md:w-auto px-5 py-3 rounded-xl bg-amber-600 text-amber-950 font-bold hover:bg-amber-500 transition flex items-center justify-center gap-2 whitespace-nowrap shadow-lg">
+                            <i class="fa-solid fa-copy"></i>
+                            <span>متن کاپی کریں</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Display Lineage Chain Text Box -->
+                <div id="chain-output-box" class="glass-panel p-6 rounded-2xl border border-amber-500/30 hidden">
+                    <h3 class="text-lg font-bold text-emerald-400 font-nastaliq mb-3 border-b border-amber-500/20 pb-2 flex items-center justify-between">
+                        <span>سلسلہ نسب النبوۃ والسیادۃ</span>
+                        <span id="chain-count-badge" class="text-xs bg-amber-950/80 text-amber-300 px-3 py-1 rounded-full border border-amber-500/30"></span>
+                    </h3>
+                    <div id="chain-formatted-text" class="text-base text-amber-100 font-nastaliq leading-loose p-4 bg-slate-950/70 rounded-xl border border-amber-500/20 my-4 text-justify">
+                    </div>
+
+                    <!-- Step Cards Flow -->
+                    <h4 class="text-sm font-bold text-amber-300 font-nastaliq mt-6 mb-3">ترتیبِ آبا و اجداد (سرورِ کائنات ﷺ سے نیچے کی طرف):</h4>
+                    <div id="chain-step-cards" class="space-y-2"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 3: Directory View -->
+        <div id="view-directory" class="w-full h-full flex-1 p-4 md:p-8 hidden overflow-y-auto">
+            <div class="max-w-7xl mx-auto space-y-6">
+                <div class="flex items-center justify-between border-b border-amber-500/30 pb-3">
+                    <h2 id="directory-title" class="text-xl font-bold text-amber-300 font-nastaliq flex items-center gap-2">
+                        <i class="fa-solid fa-users-rectangle"></i>
+                        <span>فہرست اعضائے شجرۂ نسب (۴۶ نسلیں)</span>
+                    </h2>
+                    <span id="directory-count" class="text-xs text-amber-400 font-amiri bg-amber-950/60 px-3 py-1 rounded-full border border-amber-500/30"></span>
+                </div>
+                <!-- Cards Grid -->
+                <div id="directory-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            </div>
+        </div>
+
+        <!-- VIEW 4: Statistics & Insights -->
+        <div id="view-stats" class="w-full h-full flex-1 p-4 md:p-8 hidden overflow-y-auto">
+            <div class="max-w-6xl mx-auto space-y-6">
+                <h2 class="text-2xl font-bold text-amber-300 font-nastaliq border-b border-amber-500/30 pb-3 flex items-center gap-3">
+                    <i class="fa-solid fa-chart-line text-amber-400"></i>
+                    <span>احصائیات و تفاصیلِ شجرہ</span>
+                </h2>
+
+                <!-- Key Stat Counter Cards -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="glass-panel p-4 rounded-2xl text-center border border-amber-500/30">
+                        <div class="text-3xl font-bold text-amber-400 font-kufi" id="stat-total-count">151</div>
+                        <div class="text-xs text-amber-200/80 font-nastaliq mt-1">کل شخصیات / ارکان</div>
+                    </div>
+                    <div class="glass-panel p-4 rounded-2xl text-center border border-amber-500/30">
+                        <div class="text-3xl font-bold text-emerald-400 font-kufi" id="stat-total-gens">46</div>
+                        <div class="text-xs text-amber-200/80 font-nastaliq mt-1">کل ادوار / نسلیں</div>
+                    </div>
+                    <div class="glass-panel p-4 rounded-2xl text-center border border-amber-500/30">
+                        <div class="text-3xl font-bold text-blue-400 font-kufi" id="stat-branches-count">18</div>
+                        <div class="text-xs text-amber-200/80 font-nastaliq mt-1">شاخیں و سلاسل</div>
+                    </div>
+                    <div class="glass-panel p-4 rounded-2xl text-center border border-amber-500/30">
+                        <div class="text-3xl font-bold text-purple-400 font-kufi">1400+</div>
+                        <div class="text-xs text-amber-200/80 font-nastaliq mt-1">سالہ تاریخی تسلسل</div>
+                    </div>
+                </div>
+
+                <!-- Branch Distribution Table -->
+                <div class="glass-panel p-6 rounded-2xl border border-amber-500/30">
+                    <h3 class="text-lg font-bold text-amber-300 font-nastaliq mb-4">شاخ وار / سلسلہ وار تقسیم:</h3>
+                    <div id="branches-stats-list" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm"></div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Detailed Modal Window -->
+    <div id="person-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-panel max-w-lg w-full rounded-2xl border-2 border-amber-500/50 p-6 shadow-2xl relative my-auto max-h-[90vh] overflow-y-auto">
+            <button onclick="closePersonModal()" class="absolute top-4 left-4 w-8 h-8 rounded-full bg-slate-800 text-amber-300 hover:bg-amber-600 hover:text-amber-950 transition flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="text-center border-b border-amber-500/30 pb-4 mb-4">
+                <span id="modal-gen-badge" class="inline-block px-3 py-1 rounded-full bg-amber-950 text-amber-300 text-xs font-bold border border-amber-500/40 mb-2"></span>
+                <h3 id="modal-name-display" class="text-2xl font-bold text-amber-200 font-nastaliq leading-relaxed"></h3>
+                <div id="modal-title-alias" class="text-sm text-emerald-400 font-nastaliq mt-1"></div>
+            </div>
+
+            <div class="space-y-3 text-xs md:text-sm font-nastaliq">
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/60 border border-amber-500/20">
+                    <span class="text-amber-400">والد / سرپرست:</span>
+                    <span id="modal-father-name" class="text-amber-100 font-bold"></span>
+                </div>
+
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/60 border border-amber-500/20">
+                    <span class="text-amber-400">سلسلہ / شاخ / خاندان:</span>
+                    <span id="modal-branch" class="text-amber-100"></span>
+                </div>
+
+                <div id="modal-shrine-box" class="p-2.5 rounded-xl bg-slate-950/60 border border-amber-500/20 hidden">
+                    <div class="text-amber-400 mb-1 flex items-center gap-1.5">
+                        <i class="fa-solid fa-kaaba text-cyan-400"></i>
+                        <span>مزار / مدفن / مسکن:</span>
+                    </div>
+                    <div id="modal-shrine-text" class="text-cyan-200 pr-4"></div>
+                </div>
+
+                <div class="p-2.5 rounded-xl bg-slate-950/60 border border-amber-500/20">
+                    <div class="text-amber-400 mb-1 flex items-center gap-1.5">
+                        <i class="fa-solid fa-note-sticky text-amber-400"></i>
+                        <span>تاریخی تفاصیل و نوٹس:</span>
+                    </div>
+                    <div id="modal-notes" class="text-amber-100/90 leading-relaxed pr-2"></div>
+                </div>
+            </div>
+
+            <div class="mt-6 flex flex-col sm:flex-row gap-2">
+                <button id="modal-btn-trace" class="flex-1 py-2.5 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold transition flex items-center justify-center gap-2 text-xs font-nastaliq">
+                    <i class="fa-solid fa-route"></i>
+                    <span>نسب ہائی لائٹ کریں</span>
+                </button>
+                <button id="modal-btn-chain" class="flex-1 py-2.5 px-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-amber-950 font-bold transition flex items-center justify-center gap-2 text-xs font-nastaliq">
+                    <i class="fa-solid fa-scroll"></i>
+                    <span>سلسلہ نسب دیکھیں</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast-message" class="fixed bottom-5 right-5 z-50 glass-panel border border-amber-500/50 px-4 py-3 rounded-xl text-amber-200 font-nastaliq text-xs shadow-2xl transition-all duration-300 opacity-0 pointer-events-none transform translate-y-4 flex items-center gap-2">
+        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toast-text"></span>
+    </div>
+
+    <script>
+        // Primary 46-Generation Dataset (151 Members)
+        const shajraNasabData = [
+          {"id":1,"generation":1,"name_urdu":"حضرت محمد مصطفیٰ ﷺ","parent_id":null,"father_urdu":"حضرت عبداللہ","title_alias":"خاتم النبیین، سرورِ کائنات، احمد مجتبیٰ، رحمۃ للعالمین","branch":"سلسلہ نبوت / بنو ہاشم","location_shrine":"مدینہ منورہ","notes":"سرورِ انبیاء، رسولِ خدا ﷺ"},
+          {"id":2,"generation":2,"name_urdu":"حضرت فاطمۃ الزہراء سلام اللہ علیہا","parent_id":1,"father_urdu":"حضرت محمد مصطفیٰ ﷺ","title_alias":"سیدہ نساء العالمین، الزہراء","branch":"اہلِ بیت اطہار","location_shrine":"جنت البقیع","notes":"دخترِ رسول ﷺ، زوجہ حضرت علی ابن ابی طالب ع"},
+          {"id":3,"generation":2,"name_urdu":"حضرت علی ابن ابی طالب علیہ السلام","parent_id":null,"father_urdu":"حضرت ابو طالب","title_alias":"امیر المومنین، امام اول، اسد اللہ الغالب","branch":"اہلِ بیت اطہار","location_shrine":"نجف اشرف، عراق","notes":"داماد و برادرِ رسول ﷺ، زوج حضرت فاطمۃ الزہراء ع"},
+          {"id":4,"generation":3,"name_urdu":"حضرت امام حسن علیہ السلام","parent_id":3,"father_urdu":"حضرت علی ابن ابی طالب علیہ السلام","title_alias":"امام دوم، المجتبیٰ، سید شباب اہل الجنہ","branch":"ساداتِ حسنی","location_shrine":"جنت البقیع","notes":"فرزند حضرت علی و فاطمہ الزہراء ع"},
+          {"id":5,"generation":3,"name_urdu":"حضرت امام حسین علیہ السلام","parent_id":3,"father_urdu":"حضرت علی ابن ابی طالب علیہ السلام","title_alias":"امام سوم، سید الشہداء","branch":"ساداتِ حسینی","location_shrine":"کربلائے معلیٰ، عراق","notes":"سلسلہ نسب جاری ہوا"},
+          {"id":6,"generation":4,"name_urdu":"حضرت امام زین العابدین علیہ السلام","parent_id":5,"father_urdu":"حضرت امام حسین علیہ السلام","title_alias":"امام چہارم، سجاد، سید الساجدین","branch":"ساداتِ حسینی","location_shrine":"جنت البقیع","notes":"سلسلہ نسب جاری"},
+          {"id":7,"generation":5,"name_urdu":"حضرت امام محمد باقر علیہ السلام","parent_id":6,"father_urdu":"حضرت امام زین العابدین علیہ السلام","title_alias":"امام پنجم، باقر العلوم","branch":"ساداتِ باقری","location_shrine":"جنت البقیع","notes":"سلسلہ نسب جاری"},
+          {"id":8,"generation":6,"name_urdu":"سید عبداللہ","parent_id":7,"father_urdu":"حضرت امام محمد باقر علیہ السلام","title_alias":"","branch":"ساداتِ باقری","location_shrine":"","notes":"برادر امام جعفر صادق ع"},
+          {"id":9,"generation":6,"name_urdu":"سید علی","parent_id":7,"father_urdu":"حضرت امام محمد باقر علیہ السلام","title_alias":"","branch":"ساداتِ باقری","location_shrine":"","notes":"برادر امام جعفر صادق ع"},
+          {"id":10,"generation":6,"name_urdu":"سید ابراہیم","parent_id":7,"father_urdu":"حضرت امام محمد باقر علیہ السلام","title_alias":"","branch":"ساداتِ باقری","location_shrine":"","notes":"برادر امام جعفر صادق ع"},
+          {"id":11,"generation":6,"name_urdu":"سید حسن","parent_id":7,"father_urdu":"حضرت امام محمد باقر علیہ السلام","title_alias":"","branch":"ساداتِ باقری","location_shrine":"","notes":"برادر امام جعفر صادق ع"},
+          {"id":12,"generation":6,"name_urdu":"حضرت امام جعفر صادق علیہ السلام","parent_id":7,"father_urdu":"حضرت امام محمد باقر علیہ السلام","title_alias":"امام ششم، الصادق","branch":"ساداتِ جعفری","location_shrine":"جنت البقیع","notes":"سلسلہ نسب جاری"},
+          {"id":13,"generation":7,"name_urdu":"سید اسماعیل","parent_id":12,"father_urdu":"حضرت امام جعفر صادق علیہ السلام","title_alias":"اسماعیل الاعرج","branch":"سلسلہ اسماعیلیہ","location_shrine":"","notes":"فرزند امام جعفر صادق ع"},
+          {"id":14,"generation":7,"name_urdu":"سید علی","parent_id":12,"father_urdu":"حضرت امام جعفر صادق علیہ السلام","title_alias":"علی العریضی","branch":"ساداتِ عریضی","location_shrine":"","notes":"فرزند امام جعفر صادق ع"},
+          {"id":15,"generation":7,"name_urdu":"سید محمد دیباج","parent_id":12,"father_urdu":"حضرت امام جعفر صادق علیہ السلام","title_alias":"محمد الدیباج","branch":"ساداتِ دیباجی","location_shrine":"","notes":"فرزند امام جعفر صادق ع"},
+          {"id":16,"generation":7,"name_urdu":"سید عبداللہ","parent_id":12,"father_urdu":"حضرت امام جعفر صادق علیہ السلام","title_alias":"عبداللہ الافطح","branch":"ساداتِ افطحی","location_shrine":"","notes":"فرزند امام جعفر صادق ع"},
+          {"id":17,"generation":7,"name_urdu":"سید اسحاق","parent_id":12,"father_urdu":"حضرت امام جعفر صادق علیہ السلام","title_alias":"اسحاق المؤتمن","branch":"ساداتِ جعفری","location_shrine":"","notes":"فرزند امام جعفر صادق ع"},
+          {"id":18,"generation":7,"name_urdu":"سید عباس","parent_id":12,"father_urdu":"حضرت امام جعفر صادق علیہ السلام","title_alias":"","branch":"ساداتِ جعفری","location_shrine":"","notes":"فرزند امام جعفر صادق ع"},
+          {"id":19,"generation":7,"name_urdu":"سید یحییٰ","parent_id":12,"father_urdu":"حضرت امام جعفر صادق علیہ السلام","title_alias":"","branch":"ساداتِ جعفری","location_shrine":"","notes":"فرزند امام جعفر صادق ع"},
+          {"id":20,"generation":7,"name_urdu":"حضرت امام موسیٰ کاظم علیہ السلام","parent_id":12,"father_urdu":"حضرت امام جعفر صادق علیہ السلام","title_alias":"امام ہفتم، الکاظم، باب الحوائج","branch":"ساداتِ موسوی / کاظمی","location_shrine":"کاظمین، بغداد، عراق","notes":"کل فرزند 25 صاحبزادے اور 37 صاحبزادیاں تھیں"},
+          {"id":21,"generation":8,"name_urdu":"سید ابراہیم","parent_id":20,"father_urdu":"حضرت امام موسیٰ کاظم علیہ السلام","title_alias":"","branch":"ساداتِ موسوی","location_shrine":"","notes":"برادر امام علی رضا ع"},
+          {"id":22,"generation":8,"name_urdu":"سید جعفر","parent_id":20,"father_urdu":"حضرت امام موسیٰ کاظم علیہ السلام","title_alias":"","branch":"ساداتِ موسوی","location_shrine":"","notes":"برادر امام علی رضا ع"},
+          {"id":23,"generation":8,"name_urdu":"سید حسن","parent_id":20,"father_urdu":"حضرت امام موسیٰ کاظم علیہ السلام","title_alias":"","branch":"ساداتِ موسوی","location_shrine":"","notes":"برادر امام علی رضا ع"},
+          {"id":24,"generation":8,"name_urdu":"سید حسین","parent_id":20,"father_urdu":"حضرت امام موسیٰ کاظم علیہ السلام","title_alias":"","branch":"ساداتِ موسوی","location_shrine":"","notes":"برادر امام علی رضا ع"},
+          {"id":25,"generation":8,"name_urdu":"حضرت امام علی رضا علیہ السلام","parent_id":20,"father_urdu":"حضرت امام موسیٰ کاظم علیہ السلام","title_alias":"امام ہشتم، الرضا، عالم آل محمد","branch":"ساداتِ رضوی","location_shrine":"مشہد مقدس، ایران","notes":"سلسلہ نسب جاری"},
+          {"id":26,"generation":9,"name_urdu":"سید ابراہیم","parent_id":25,"father_urdu":"حضرت امام علی رضا علیہ السلام","title_alias":"","branch":"ساداتِ رضوی","location_shrine":"","notes":"برادر امام محمد تقی ع"},
+          {"id":27,"generation":9,"name_urdu":"سید جعفر","parent_id":25,"father_urdu":"حضرت امام علی رضا علیہ السلام","title_alias":"","branch":"ساداتِ رضوی","location_shrine":"","notes":"برادر امام محمد تقی ع"},
+          {"id":28,"generation":9,"name_urdu":"سید حسن","parent_id":25,"father_urdu":"حضرت امام علی رضا علیہ السلام","title_alias":"","branch":"ساداتِ رضوی","location_shrine":"","notes":"برادر امام محمد تقی ع"},
+          {"id":29,"generation":9,"name_urdu":"سید حسین","parent_id":25,"father_urdu":"حضرت امام علی رضا علیہ السلام","title_alias":"","branch":"ساداتِ رضوی","location_shrine":"","notes":"برادر امام محمد تقی ع"},
+          {"id":30,"generation":9,"name_urdu":"حضرت امام محمد تقی علیہ السلام","parent_id":25,"father_urdu":"حضرت امام علی رضا علیہ السلام","title_alias":"امام نہم، الجواد، التقی","branch":"ساداتِ تقوی","location_shrine":"کاظمین، بغداد، عراق","notes":"سلسلہ نسب جاری"},
+          {"id":31,"generation":10,"name_urdu":"سید جعفر","parent_id":30,"father_urdu":"حضرت امام محمد تقی علیہ السلام","title_alias":"","branch":"ساداتِ تقوی","location_shrine":"","notes":"برادر امام علی نقی ع"},
+          {"id":32,"generation":10,"name_urdu":"ابو جعفر سید موسیٰ المبرقع","parent_id":30,"father_urdu":"حضرت امام محمد تقی علیہ السلام","title_alias":"المبرقع، ابو جعفر","branch":"ساداتِ برقعی / رضوی","location_shrine":"قم مقدس، ایران","notes":"مدفون قم، ایران"},
+          {"id":33,"generation":10,"name_urdu":"حضرت امام علی نقی علیہ السلام","parent_id":30,"father_urdu":"حضرت امام محمد تقی علیہ السلام","title_alias":"امام دہم، الہادی، النقی","branch":"ساداتِ نقویہ","location_shrine":"سامرا، عراق","notes":"سلسلہ نسب جاری (جدِ ساداتِ نقویہ)"},
+          {"id":34,"generation":11,"name_urdu":"سید محمد","parent_id":33,"father_urdu":"حضرت امام علی نقی علیہ السلام","title_alias":"سبع الدجیل","branch":"ساداتِ نقویہ","location_shrine":"بلد، عراق","notes":"مزار بلد، عراق"},
+          {"id":35,"generation":11,"name_urdu":"سید حسین","parent_id":33,"father_urdu":"حضرت امام علی نقی علیہ السلام","title_alias":"","branch":"ساداتِ نقویہ","location_shrine":"","notes":"برادر امام حسن عسکری و سید جعفر ثانی"},
+          {"id":36,"generation":11,"name_urdu":"حضرت امام حسن عسکری علیہ السلام","parent_id":33,"father_urdu":"حضرت امام علی نقی علیہ السلام","title_alias":"امام یازدہم، العسکری","branch":"ساداتِ عسکری","location_shrine":"سامرا، عراق","notes":"والد ماجد حضرت امام مہدی عجل اللہ فرجہ"},
+          {"id":37,"generation":11,"name_urdu":"سید جعفر ثانی","parent_id":33,"father_urdu":"حضرت امام علی نقی علیہ السلام","title_alias":"جعفر ثانی / جعفر زکی","branch":"ساداتِ نقویہ","location_shrine":"","notes":"سلسلہ نسب جاری"},
+          {"id":38,"generation":12,"name_urdu":"سید علی اصغر","parent_id":37,"father_urdu":"سید جعفر ثانی","title_alias":"علی اصغر","branch":"ساداتِ نقویہ","location_shrine":"","notes":"سلسلہ نسب جاری"},
+          {"id":39,"generation":13,"name_urdu":"سید اسماعیل","parent_id":38,"father_urdu":"سید علی اصغر","title_alias":"","branch":"ساداتِ نقویہ","location_shrine":"","notes":"فرزند سید علی اصغر"},
+          {"id":40,"generation":13,"name_urdu":"سید احمد","parent_id":38,"father_urdu":"سید علی اصغر","title_alias":"","branch":"ساداتِ نقویہ","location_shrine":"","notes":"فرزند سید علی اصغر"},
+          {"id":41,"generation":13,"name_urdu":"سید محمد","parent_id":38,"father_urdu":"سید علی اصغر","title_alias":"","branch":"ساداتِ نقویہ","location_shrine":"","notes":"فرزند سید علی اصغر"},
+          {"id":42,"generation":13,"name_urdu":"سید جعفر","parent_id":38,"father_urdu":"سید علی اصغر","title_alias":"","branch":"ساداتِ نقویہ","location_shrine":"","notes":"فرزند سید علی اصغر"},
+          {"id":43,"generation":13,"name_urdu":"سید عبداللہ","parent_id":38,"father_urdu":"سید علی اصغر","title_alias":"","branch":"ساداتِ نقویہ","location_shrine":"","notes":"سلسلہ نسب جاری"},
+          {"id":44,"generation":14,"name_urdu":"سید احمد","parent_id":43,"father_urdu":"سید عبداللہ","title_alias":"","branch":"ساداتِ نقویہ","location_shrine":"","notes":"فرزند سید عبداللہ"},
+          {"id":45,"generation":14,"name_urdu":"سید شہاب الدین","parent_id":43,"father_urdu":"سید عبداللہ","title_alias":"شہاب الدین","branch":"ساداتِ نقویہ","location_shrine":"","notes":"فرزند سید عبداللہ"},
+          {"id":46,"generation":14,"name_urdu":"سید محمد","parent_id":43,"father_urdu":"سید عبداللہ","title_alias":"","branch":"ساداتِ نقویہ","location_shrine":"","notes":"سلسلہ نسب جاری"},
+          {"id":47,"generation":15,"name_urdu":"سید ابراہیم","parent_id":46,"father_urdu":"سید محمد","title_alias":"","branch":"ساداتِ نقویہ","location_shrine":"","notes":"سلسلہ نسب جاری"},
+          {"id":48,"generation":16,"name_urdu":"سید محمد سمعان شاہ قلانی","parent_id":47,"father_urdu":"سید ابراہیم","title_alias":"سمعان شاہ قلانی","branch":"ساداتِ نقویہ","location_shrine":"","notes":"سلسلہ نسب جاری"},
+          {"id":49,"generation":17,"name_urdu":"سیدنا ناصر الدین ابی یوسف چشتی رحمتہ اللہ علیہ","parent_id":48,"father_urdu":"سید محمد سمعان شاہ قلانی","title_alias":"ابی یوسف چشتی، ناصر الدین","branch":"سلسلہ عالیہ چشتیہ","location_shrine":"چشت شریف، افغانستان","notes":"پیشوائے سلسلہ عالیہ چشتیہ"},
+          {"id":50,"generation":18,"name_urdu":"خواجہ سید قطب الدین مودود چشتی رحمتہ اللہ علیہ","parent_id":49,"father_urdu":"سیدنا ناصر الدین ابی یوسف چشتی رحمتہ اللہ علیہ","title_alias":"شیخ المشائخ، قطب الدین مودود چشتی","branch":"سلسلہ چشتیہ مودودیہ","location_shrine":"چشت شریف، افغانستان","notes":"بانی سلسلہ چشتیہ مودودیہ"},
+          {"id":51,"generation":19,"name_urdu":"خواجہ سید یوسف","parent_id":50,"father_urdu":"خواجہ سید قطب الدین مودود چشتی رحمتہ اللہ علیہ","title_alias":"چھوٹے بیٹے","branch":"ساداتِ مودودیہ","location_shrine":"","notes":"فرزندان: ابو الاحمد، خواجہ احمد"},
+          {"id":52,"generation":19,"name_urdu":"خواجہ سید احمد","parent_id":50,"father_urdu":"خواجہ سید قطب الدین مودود چشتی رحمتہ اللہ علیہ","title_alias":"بڑے بیٹے","branch":"ساداتِ مودودیہ چشتیہ","location_shrine":"","notes":"سلسلہ نسب جاری"},
+          {"id":53,"generation":20,"name_urdu":"ابو الاحمد","parent_id":51,"father_urdu":"خواجہ سید یوسف","title_alias":"","branch":"ساداتِ مودودیہ","location_shrine":"","notes":"فرزند خواجہ سید یوسف"},
+          {"id":54,"generation":20,"name_urdu":"خواجہ احمد","parent_id":51,"father_urdu":"خواجہ سید یوسف","title_alias":"","branch":"ساداتِ مودودیہ","location_shrine":"","notes":"فرزند خواجہ سید یوسف"},
+          {"id":55,"generation":20,"name_urdu":"خواجہ سید رکن الدین","parent_id":52,"father_urdu":"خواجہ سید احمد","title_alias":"رکن الدین","branch":"ساداتِ مودودیہ","location_shrine":"","notes":"سلسلہ نسب جاری"},
+          {"id":56,"generation":21,"name_urdu":"خواجہ سید قطب الدین","parent_id":55,"father_urdu":"خواجہ سید رکن الدین","title_alias":"قطب الدین","branch":"ساداتِ مودودیہ","location_shrine":"","notes":"سلسلہ نسب جاری"},
+          {"id":57,"generation":22,"name_urdu":"خواجہ سید الاشرف","parent_id":56,"father_urdu":"خواجہ سید قطب الدین","title_alias":"الاشرف","branch":"ساداتِ مودودیہ","location_shrine":"","notes":"سلسلہ نسب جاری"},
+          {"id":58,"generation":23,"name_urdu":"خواجہ سید محمود خطیر اول","parent_id":57,"father_urdu":"خواجہ سید الاشرف","title_alias":"خطیر اول","branch":"ساداتِ مودودیہ","location_shrine":"","notes":"سلسلہ نسب جاری"},
+          {"id":59,"generation":24,"name_urdu":"خواجہ سید مودود ثانی","parent_id":58,"father_urdu":"خواجہ سید محمود خطیر اول","title_alias":"مودود ثانی","branch":"ساداتِ مودودیہ","location_shrine":"","notes":"سلسلہ نسب جاری"},
+          {"id":60,"generation":25,"name_urdu":"خواجہ سید عثمان","parent_id":59,"father_urdu":"خواجہ سید مودود ثانی","title_alias":"","branch":"ساداتِ مودودیہ","location_shrine":"","notes":"سلسلہ نسب جاری"},
+          {"id":61,"generation":26,"name_urdu":"خواجہ سید محمود","parent_id":60,"father_urdu":"خواجہ سید عثمان","title_alias":"","branch":"ساداتِ مودودیہ","location_shrine":"","notes":"سلسلہ نسب جاری"},
+          {"id":62,"generation":27,"name_urdu":"خواجہ سید خطیر ثانی","parent_id":61,"father_urdu":"خواجہ سید محمود","title_alias":"خطیر ثانی","branch":"ساداتِ مودودیہ","location_shrine":"","notes":"سلسلہ نسب جاری"},
+          {"id":63,"generation":28,"name_urdu":"خواجہ سید محمد ہمام المعروف خواجہ بزرگ","parent_id":62,"father_urdu":"خواجہ سید خطیر ثانی","title_alias":"المعروف خواجہ بزرگ (ہمام)","branch":"ساداتِ مودودیہ","location_shrine":"","notes":"مرکزی بزرگ سلسلہ"},
+          {"id":64,"generation":29,"name_urdu":"خواجہ احمد عرف خواجہ کالے","parent_id":63,"father_urdu":"خواجہ سید محمد ہمام المعروف خواجہ بزرگ","title_alias":"عرف خواجہ کالے (بڑے بیٹے)","branch":"شاخ خواجہ کالے","location_shrine":"","notes":"فرزندان: خواجہ نصر اللہ شاہ، خواجہ سید فتح شاہ"},
+          {"id":65,"generation":29,"name_urdu":"خواجہ سید عطاء اللہ شاہ","parent_id":63,"father_urdu":"خواجہ سید محمد ہمام المعروف خواجہ بزرگ","title_alias":"عطاء اللہ شاہ (چھوٹے بیٹے)","branch":"ساداتِ مودودیہ","location_shrine":"","notes":"سلسلہ نسب جاری"},
+          {"id":66,"generation":30,"name_urdu":"خواجہ نصر اللہ شاہ","parent_id":64,"father_urdu":"خواجہ احمد عرف خواجہ کالے","title_alias":"","branch":"شاخ خواجہ کالے","location_shrine":"","notes":"لاولد تھے"},
+          {"id":67,"generation":30,"name_urdu":"خواجہ سید فتح شاہ","parent_id":64,"father_urdu":"خواجہ احمد عرف خواجہ کالے","title_alias":"","branch":"شاخ خواجہ کالے","location_shrine":"امروحہ","notes":"اولاد امروحہ میں آباد ہے (عمر ۱۰۶ سال)"},
+          {"id":68,"generation":30,"name_urdu":"خواجہ سید محمد اسحاق","parent_id":65,"father_urdu":"خواجہ سید عطاء اللہ شاہ","title_alias":"","branch":"ساداتِ مودودیہ","location_shrine":"","notes":"فرزند خواجہ سید عطاء اللہ شاہ"},
+          {"id":69,"generation":30,"name_urdu":"خواجہ سید محمد","parent_id":65,"father_urdu":"خواجہ سید عطاء اللہ شاہ","title_alias":"","branch":"ساداتِ مودودیہ","location_shrine":"امروحہ","notes":"اولاد امروحہ میں آباد ہے"},
+          {"id":70,"generation":30,"name_urdu":"خواجہ سید محمود","parent_id":65,"father_urdu":"خواجہ سید عطاء اللہ شاہ","title_alias":"","branch":"ساداتِ مودودیہ","location_shrine":"","notes":"فرزند خواجہ سید عطاء اللہ شاہ"},
+          {"id":71,"generation":30,"name_urdu":"خواجہ عثمان","parent_id":65,"father_urdu":"خواجہ سید عطاء اللہ شاہ","title_alias":"عثمان خان","branch":"ساداتِ مودودیہ","location_shrine":"","notes":"فرزند خواجہ سید عطاء اللہ شاہ"},
+          {"id":72,"generation":30,"name_urdu":"خواجہ سید محمد اسماعیل","parent_id":65,"father_urdu":"خواجہ سید عطاء اللہ شاہ","title_alias":"محمد اسماعیل","branch":"ساداتِ مودودیہ","location_shrine":"","notes":"سلسلہ نسب جاری (ہماری شاخ)"},
+          {"id":73,"generation":31,"name_urdu":"خواجہ منجھو","parent_id":72,"father_urdu":"خواجہ سید محمد اسماعیل","title_alias":"","branch":"ساداتِ مودودیہ","location_shrine":"","notes":"فرزند خواجہ سید محمد اسماعیل"},
+          {"id":74,"generation":31,"name_urdu":"خواجہ سید سجھو","parent_id":72,"father_urdu":"خواجہ سید محمد اسماعیل","title_alias":"","branch":"ساداتِ مودودیہ","location_shrine":"","notes":"فرزند خواجہ سید محمد اسماعیل"},
+          {"id":75,"generation":31,"name_urdu":"قاضی سید عبد الشکور شہید رحمتہ اللہ علیہ","parent_id":72,"father_urdu":"خواجہ سید محمد اسماعیل","title_alias":"قاضی، چیف جسٹس، شہید","branch":"ساداتِ مودودیہ","location_shrine":"","notes":"چیف جسٹس، سلسلہ نسب جاری"},
+          {"id":76,"generation":32,"name_urdu":"مفتی سید محمد فاضل","parent_id":75,"father_urdu":"قاضی سید عبد الشکور شہید رحمتہ اللہ علیہ","title_alias":"مفتی","branch":"ساداتِ مودودیہ","location_shrine":"","notes":"فرزند قاضی عبد الشکور شہید"},
+          {"id":77,"generation":32,"name_urdu":"سید محمد حاکم","parent_id":75,"father_urdu":"قاضی سید عبد الشکور شہید رحمتہ اللہ علیہ","title_alias":"حاکم","branch":"ساداتِ مودودیہ","location_shrine":"","notes":"فرزند قاضی عبد الشکور شہید"},
+          {"id":78,"generation":32,"name_urdu":"سید قاضی محمد صالح","parent_id":75,"father_urdu":"قاضی سید عبد الشکور شہید رحمتہ اللہ علیہ","title_alias":"قاضی صالح","branch":"ساداتِ مودودیہ","location_shrine":"","notes":"فرزند قاضی عبد الشکور شہید"},
+          {"id":79,"generation":32,"name_urdu":"سید محمد قاسم","parent_id":75,"father_urdu":"قاضی سید عبد الشکور شہید رحمتہ اللہ علیہ","title_alias":"","branch":"ساداتِ مودودیہ","location_shrine":"","notes":"فرزند قاضی عبد الشکور شہید"},
+          {"id":80,"generation":32,"name_urdu":"سید محمد ہاشم","parent_id":75,"father_urdu":"قاضی سید عبد الشکور شہید رحمتہ اللہ علیہ","title_alias":"ہاشم (جدِ ساداتِ ہاشمی)","branch":"ساداتِ ہاشمیہ","location_shrine":"","notes":"سلسلہ نسب جاری (بنیادِ ساداتِ ہاشمیہ)"},
+          {"id":81,"generation":33,"name_urdu":"سید محمد عاصم","parent_id":80,"father_urdu":"سید محمد ہاشم","title_alias":"","branch":"ساداتِ ہاشمیہ","location_shrine":"","notes":"فرزند سید محمد ہاشم"},
+          {"id":82,"generation":33,"name_urdu":"سید عنایت محمد","parent_id":80,"father_urdu":"سید محمد ہاشم","title_alias":"عنایت","branch":"ساداتِ ہاشمیہ","location_shrine":"","notes":"فرزند سید محمد ہاشم"},
+          {"id":83,"generation":33,"name_urdu":"سید طالع محمد","parent_id":80,"father_urdu":"سید محمد ہاشم","title_alias":"","branch":"ساداتِ ہاشمیہ","location_shrine":"","notes":"فرزند سید محمد ہاشم"},
+          {"id":84,"generation":33,"name_urdu":"سید محمد خطیر","parent_id":80,"father_urdu":"سید محمد ہاشم","title_alias":"","branch":"ساداتِ ہاشمیہ","location_shrine":"","notes":"لاولد تھے"},
+          {"id":85,"generation":33,"name_urdu":"سید عطاء محمد","parent_id":80,"father_urdu":"سید محمد ہاشم","title_alias":"","branch":"ساداتِ ہاشمیہ","location_shrine":"","notes":"سلسلہ نسب جاری"},
+          {"id":86,"generation":34,"name_urdu":"سید محمد منصور شہید","parent_id":85,"father_urdu":"سید عطاء محمد","title_alias":"شہید","branch":"ساداتِ ہاشمیہ","location_shrine":"","notes":"فرزند سید عطاء محمد"},
+          {"id":87,"generation":34,"name_urdu":"سید بدر الدین","parent_id":85,"father_urdu":"سید عطاء محمد","title_alias":"بدر الدین","branch":"ساداتِ ہاشمیہ","location_shrine":"","notes":"فرزندان: سید محمد علی، سید محمد حسین"},
+          {"id":88,"generation":34,"name_urdu":"سید صدر الدین","parent_id":85,"father_urdu":"سید عطاء محمد","title_alias":"صدر الدین","branch":"ساداتِ ہاشمیہ","location_shrine":"","notes":"فرزندان: سید سیف علی، سید محمد میر"},
+          {"id":89,"generation":34,"name_urdu":"سید سراج الدین","parent_id":85,"father_urdu":"سید عطاء محمد","title_alias":"سراج الدین","branch":"ساداتِ ہاشمیہ","location_shrine":"","notes":"سلسلہ نسب جاری (ہماری لائن)"},
+          {"id":90,"generation":35,"name_urdu":"سید محمد علی","parent_id":87,"father_urdu":"سید بدر الدین","title_alias":"","branch":"ساداتِ ہاشمیہ","location_shrine":"","notes":"فرزند سید بدر الدین"},
+          {"id":91,"generation":35,"name_urdu":"سید محمد حسین","parent_id":87,"father_urdu":"سید بدر الدین","title_alias":"","branch":"ساداتِ ہاشمیہ","location_shrine":"","notes":"فرزند سید بدر الدین"},
+          {"id":92,"generation":35,"name_urdu":"سید سیف علی","parent_id":88,"father_urdu":"سید صدر الدین","title_alias":"","branch":"ساداتِ ہاشمیہ","location_shrine":"","notes":"فرزند سید صدر الدین"},
+          {"id":93,"generation":35,"name_urdu":"سید محمد میر","parent_id":88,"father_urdu":"سید صدر الدین","title_alias":"","branch":"ساداتِ ہاشمیہ","location_shrine":"","notes":"فرزند سید صدر الدین"},
+          {"id":94,"generation":35,"name_urdu":"سید غیاث الدین","parent_id":89,"father_urdu":"سید سراج الدین","title_alias":"","branch":"ساداتِ ہاشمیہ","location_shrine":"","notes":"فرزند سید سراج الدین"},
+          {"id":95,"generation":35,"name_urdu":"سید امام الدین","parent_id":89,"father_urdu":"سید سراج الدین","title_alias":"","branch":"ساداتِ ہاشمیہ","location_shrine":"","notes":"فرزند سید سراج الدین"},
+          {"id":96,"generation":35,"name_urdu":"سید تاج الدین","parent_id":89,"father_urdu":"سید سراج الدین","title_alias":"","branch":"ساداتِ ہاشمیہ","location_shrine":"","notes":"فرزند سید سراج الدین"},
+          {"id":97,"generation":35,"name_urdu":"سید قطب الدین قطب شیر","parent_id":89,"father_urdu":"سید سراج الدین","title_alias":"قطب شیر / قطب ثانی","branch":"ساداتِ ہاشمیہ","location_shrine":"","notes":"سلسلہ نسب جاری (ہماری لائن)"},
+          {"id":98,"generation":36,"name_urdu":"سید سعادت علی","parent_id":97,"father_urdu":"سید قطب الدین قطب شیر","title_alias":"","branch":"ساداتِ ہاشمیہ","location_shrine":"","notes":"اولاد نہیں ہے (لاولد)"},
+          {"id":99,"generation":36,"name_urdu":"سید بڈھا","parent_id":97,"father_urdu":"سید قطب الدین قطب شیر","title_alias":"","branch":"ساداتِ ہاشمیہ","location_shrine":"","notes":"چھوٹے بیٹے"},
+          {"id":100,"generation":36,"name_urdu":"سید ارزانی","parent_id":97,"father_urdu":"سید قطب الدین قطب شیر","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ سید ارزانی)","location_shrine":"","notes":"فرزند سید قطب الدین قطب شیر"},
+          {"id":101,"generation":36,"name_urdu":"سید عظیم الدین عرف گھوٹا رحمتہ اللہ علیہ","parent_id":97,"father_urdu":"سید قطب الدین قطب شیر","title_alias":"عرف گھوٹا","branch":"ساداتِ ہاشمیہ (مرکزی سلسلہ)","location_shrine":"","notes":"سلسلہ نسب جاری (ہماری لائن)"},
+          {"id":102,"generation":37,"name_urdu":"سید بشیر الدین حسن","parent_id":100,"father_urdu":"سید ارزانی","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ سید ارزانی)","location_shrine":"","notes":"فرزند سید ارزانی"},
+          {"id":103,"generation":38,"name_urdu":"سید غلام امام","parent_id":102,"father_urdu":"سید بشیر الدین حسن","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ سید ارزانی)","location_shrine":"","notes":"فرزند سید بشیر الدین حسن"},
+          {"id":104,"generation":38,"name_urdu":"سید اشفاق حسین","parent_id":102,"father_urdu":"سید بشیر الدین حسن","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ سید ارزانی)","location_shrine":"","notes":"فرزند سید بشیر الدین حسن"},
+          {"id":105,"generation":38,"name_urdu":"سید مقصود حسین","parent_id":102,"father_urdu":"سید بشیر الدین حسن","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ سید ارزانی)","location_shrine":"","notes":"فرزند سید بشیر الدین حسن"},
+          {"id":106,"generation":38,"name_urdu":"سید نظیر الدین","parent_id":102,"father_urdu":"سید بشیر الدین حسن","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ سید ارزانی)","location_shrine":"","notes":"فرزند سید بشیر الدین حسن"},
+          {"id":107,"generation":39,"name_urdu":"سید محمد ہمام","parent_id":103,"father_urdu":"سید غلام امام","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ سید ارزانی)","location_shrine":"","notes":"فرزند سید غلام امام"},
+          {"id":108,"generation":39,"name_urdu":"سید ظہور حسین","parent_id":106,"father_urdu":"سید نظیر الدین","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ سید ارزانی)","location_shrine":"","notes":"فرزند سید نظیر الدین"},
+          {"id":109,"generation":37,"name_urdu":"سید کریم عطا ہاشمی","parent_id":101,"father_urdu":"سید عظیم الدین عرف گھوٹا رحمتہ اللہ علیہ","title_alias":"کریم عطا ہاشمی","branch":"ساداتِ ہاشمیہ (مرکزی سلسلہ)","location_shrine":"","notes":"سلسلہ نسب جاری"},
+          {"id":110,"generation":38,"name_urdu":"سید رحیم عطا ہاشمی","parent_id":109,"father_urdu":"سید کریم عطا ہاشمی","title_alias":"رحیم عطا ہاشمی","branch":"ساداتِ ہاشمیہ (مرکزی سلسلہ)","location_shrine":"","notes":"سلسلہ نسب جاری"},
+          {"id":111,"generation":39,"name_urdu":"سید فضل رسول ہاشمی","parent_id":110,"father_urdu":"سید رحیم عطا ہاشمی","title_alias":"فضل رسول ہاشمی","branch":"ساداتِ ہاشمیہ (مرکزی سلسلہ)","location_shrine":"","notes":"سلسلہ نسب جاری"},
+          {"id":112,"generation":40,"name_urdu":"سید اولاد رسول ہاشمی","parent_id":111,"father_urdu":"سید فضل رسول ہاشمی","title_alias":"اولاد رسول ہاشمی","branch":"ساداتِ ہاشمیہ (مرکزی سلسلہ)","location_shrine":"","notes":"فرزندان: سید اعتماد رسول، سید پیر فتح الدین شاہ ہاشمی"},
+          {"id":113,"generation":41,"name_urdu":"سید اعتماد رسول ہاشمی","parent_id":112,"father_urdu":"سید اولاد رسول ہاشمی","title_alias":"اعتماد رسول ہاشمی","branch":"ساداتِ ہاشمیہ","location_shrine":"","notes":"فرزندان: سید احفاد رسول، شفیق احمد ہاشمی، رفیق احمد ہاشمی"},
+          {"id":114,"generation":41,"name_urdu":"سید پیر فتح الدین شاہ ہاشمی","parent_id":112,"father_urdu":"سید اولاد رسول ہاشمی","title_alias":"پیر فتح الدین شاہ ہاشمی","branch":"ساداتِ ہاشمیہ (مرکزی سلسلہ)","location_shrine":"قصبہ ہریانہ، تحصیل و ضلع ہوشیار پور (میراں جی دا باغ)","notes":"مزار: میراں جی دا باغ، قصبہ ہریانہ، تحصیل و ضلع ہوشیار پور (فرزندان: سید شاہ قطب الدین ہاشمی، سید میراں فخر الدین ہاشمی)"},
+          {"id":115,"generation":42,"name_urdu":"سید احفاد رسول ہاشمی","parent_id":113,"father_urdu":"سید اعتماد رسول ہاشمی","title_alias":"","branch":"ساداتِ ہاشمیہ","location_shrine":"","notes":"فرزند سید اعتماد رسول ہاشمی"},
+          {"id":116,"generation":42,"name_urdu":"شفیق احمد ہاشمی","parent_id":113,"father_urdu":"سید اعتماد رسول ہاشمی","title_alias":"","branch":"ساداتِ ہاشمیہ","location_shrine":"","notes":"فرزند سید اعتماد رسول ہاشمی"},
+          {"id":117,"generation":42,"name_urdu":"رفیق احمد ہاشمی","parent_id":113,"father_urdu":"سید اعتماد رسول ہاشمی","title_alias":"","branch":"ساداتِ ہاشمیہ","location_shrine":"","notes":"فرزند سید اعتماد رسول ہاشمی"},
+          {"id":118,"generation":42,"name_urdu":"سید شاہ قطب الدین ہاشمی","parent_id":114,"father_urdu":"سید پیر فتح الدین شاہ ہاشمی","title_alias":"شاہ قطب الدین ہاشمی","branch":"ساداتِ ہاشمیہ","location_shrine":"","notes":"فرزند سید پیر فتح الدین شاہ ہاشمی"},
+          {"id":119,"generation":42,"name_urdu":"سید میراں فخر الدین ہاشمی","parent_id":114,"father_urdu":"سید پیر فتح الدین شاہ ہاشمی","title_alias":"میراں فخر الدین ہاشمی","branch":"ساداتِ ہاشمیہ (مرکزی سلسلہ)","location_shrine":"قصبہ ہریانہ، تحصیل و ضلع ہوشیار پور (میراں جی دا باغ)","notes":"مزار: میراں جی دا باغ، قصبہ ہریانہ، تحصیل و ضلع ہوشیار پور"},
+          {"id":120,"generation":43,"name_urdu":"سید تاج الدین ہاشمی (معشوق علی)","parent_id":119,"father_urdu":"سید میراں فخر الدین ہاشمی","title_alias":"عرف معشوق علی","branch":"ساداتِ ہاشمیہ (شاخ معشوق علی)","location_shrine":"","notes":"فرزند سید میراں فخر الدین ہاشمی"},
+          {"id":121,"generation":43,"name_urdu":"سید حسن علیم الدین ہاشمی","parent_id":119,"father_urdu":"سید میراں فخر الدین ہاشمی","title_alias":"حسن علیم الدین ہاشمی","branch":"ساداتِ ہاشمیہ (شاخ حسن علیم الدین)","location_shrine":"","notes":"فرزند سید میراں فخر الدین ہاشمی"},
+          {"id":122,"generation":43,"name_urdu":"سید قیصر الدین عادل ہاشمی","parent_id":119,"father_urdu":"سید میراں فخر الدین ہاشمی","title_alias":"قیصر الدین عادل ہاشمی","branch":"ساداتِ ہاشمیہ (مرکزی سلسلہ)","location_shrine":"لاہور، پاکستان","notes":"سلسلہ نسب جاری (مکن لاہور، پاکستان)"},
+          {"id":123,"generation":44,"name_urdu":"سید خالد محمود (رفیع شاہ)","parent_id":120,"father_urdu":"سید تاج الدین ہاشمی (معشوق علی)","title_alias":"رفیع شاہ","branch":"ساداتِ ہاشمیہ (شاخ معشوق علی)","location_shrine":"","notes":"فرزند سید تاج الدین ہاشمی"},
+          {"id":124,"generation":45,"name_urdu":"سید ریحان شاہ","parent_id":123,"father_urdu":"سید خالد محمود (رفیع شاہ)","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ معشوق علی)","location_shrine":"","notes":"فرزند سید خالد محمود"},
+          {"id":125,"generation":45,"name_urdu":"سید رضوان شاہ","parent_id":123,"father_urdu":"سید خالد محمود (رفیع شاہ)","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ معشوق علی)","location_shrine":"","notes":"فرزند سید خالد محمود"},
+          {"id":126,"generation":45,"name_urdu":"سید جبران شاہ","parent_id":123,"father_urdu":"سید خالد محمود (رفیع شاہ)","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ معشوق علی)","location_shrine":"","notes":"فرزند سید خالد محمود"},
+          {"id":127,"generation":46,"name_urdu":"سید فیضان علی","parent_id":126,"father_urdu":"سید جبران شاہ","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ معشوق علی)","location_shrine":"","notes":"فرزند سید جبران شاہ"},
+          {"id":128,"generation":46,"name_urdu":"سید آیان علی","parent_id":126,"father_urdu":"سید جبران شاہ","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ معشوق علی)","location_shrine":"","notes":"فرزند سید جبران شاہ"},
+          {"id":129,"generation":45,"name_urdu":"سید عرفان شاہ","parent_id":123,"father_urdu":"سید خالد محمود (رفیع شاہ)","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ معشوق علی)","location_shrine":"","notes":"فرزند سید خالد محمود"},
+          {"id":130,"generation":46,"name_urdu":"سید ارسلان علی","parent_id":129,"father_urdu":"سید عرفان شاہ","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ معشوق علی)","location_shrine":"","notes":"فرزند سید عرفان شاہ"},
+          {"id":131,"generation":46,"name_urdu":"سید ارمان علی","parent_id":129,"father_urdu":"سید عرفان شاہ","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ معشوق علی)","location_shrine":"","notes":"فرزند سید عرفان شاہ"},
+          {"id":132,"generation":46,"name_urdu":"سید گلفام علی","parent_id":129,"father_urdu":"سید عرفان شاہ","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ معشوق علی)","location_shrine":"","notes":"فرزند سید عرفان شاہ"},
+          {"id":133,"generation":45,"name_urdu":"سید عمران خالد","parent_id":123,"father_urdu":"سید خالد محمود (رفیع شاہ)","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ معشوق علی)","location_shrine":"","notes":"فرزند سید خالد محمود"},
+          {"id":134,"generation":44,"name_urdu":"سید کاشف علیم","parent_id":121,"father_urdu":"سید حسن علیم الدین ہاشمی","title_alias":"کاشف علیم","branch":"ساداتِ ہاشمیہ (شاخ حسن علیم الدین)","location_shrine":"","notes":"فرزند سید حسن علیم الدین ہاشمی"},
+          {"id":135,"generation":45,"name_urdu":"سید عبد الہادی","parent_id":134,"father_urdu":"سید کاشف علیم","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ حسن علیم الدین)","location_shrine":"","notes":"فرزند سید کاشف علیم"},
+          {"id":136,"generation":44,"name_urdu":"سید شعیب علیم","parent_id":121,"father_urdu":"سید حسن علیم الدین ہاشمی","title_alias":"شعیب علیم","branch":"ساداتِ ہاشمیہ (شاخ حسن علیم الدین)","location_shrine":"","notes":"فرزند سید حسن علیم الدین ہاشمی"},
+          {"id":137,"generation":45,"name_urdu":"سید محمد علی","parent_id":136,"father_urdu":"سید شعیب علیم","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ حسن علیم الدین)","location_shrine":"","notes":"فرزند سید شعیب علیم"},
+          {"id":138,"generation":45,"name_urdu":"سید احمد شعیب","parent_id":136,"father_urdu":"سید شعیب علیم","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ حسن علیم الدین)","location_shrine":"","notes":"فرزند سید شعیب علیم"},
+          {"id":139,"generation":44,"name_urdu":"سید شہزادہ عاصم علیم","parent_id":121,"father_urdu":"سید حسن علیم الدین ہاشمی","title_alias":"شہزادہ عاصم علیم","branch":"ساداتِ ہاشمیہ (شاخ حسن علیم الدین)","location_shrine":"","notes":"فرزند سید حسن علیم الدین ہاشمی"},
+          {"id":140,"generation":45,"name_urdu":"سید حذیفہ ہاشمی","parent_id":139,"father_urdu":"سید شہزادہ عاصم علیم","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ حسن علیم الدین)","location_shrine":"","notes":"فرزند سید شہزادہ عاصم علیم"},
+          {"id":141,"generation":45,"name_urdu":"سید فضیل ہاشمی","parent_id":139,"father_urdu":"سید شہزادہ عاصم علیم","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ حسن علیم الدین)","location_shrine":"","notes":"فرزند سید شہزادہ عاصم علیم"},
+          {"id":142,"generation":44,"name_urdu":"سید محمد سہیل قیصر ہاشمی","parent_id":122,"father_urdu":"سید قیصر الدین عادل ہاشمی","title_alias":"سہیل قیصر ہاشمی (سب سے بڑے بیٹے)","branch":"ساداتِ ہاشمیہ (شاخ قیصر الدین)","location_shrine":"","notes":"فرزندان: سید سعد بن سہیل، سید سفیان بن سہیل"},
+          {"id":143,"generation":44,"name_urdu":"سید محمد سلیم قیصر ہاشمی","parent_id":122,"father_urdu":"سید قیصر الدین عادل ہاشمی","title_alias":"سلیم قیصر ہاشمی (صاحبِ تصدیق شجرہ)","branch":"ساداتِ ہاشمیہ (شاخ قیصر الدین)","location_shrine":"لاہور، پاکستان","notes":"فرزند: سید طلحہ بن سلیم ہاشمی (اکلوتا بیٹا)"},
+          {"id":144,"generation":44,"name_urdu":"سید محمد وسیم قیصر ہاشمی","parent_id":122,"father_urdu":"سید قیصر الدین عادل ہاشمی","title_alias":"وسیم قیصر ہاشمی","branch":"ساداتِ ہاشمیہ (شاخ قیصر الدین)","location_shrine":"","notes":"چھوٹے بھائی سید سلیم قیصر ہاشمی"},
+          {"id":145,"generation":44,"name_urdu":"سید محمد نعیم قیصر ہاشمی","parent_id":122,"father_urdu":"سید قیصر الدین عادل ہاشمی","title_alias":"نعیم قیصر ہاشمی","branch":"ساداتِ ہاشمیہ (شاخ قیصر الدین)","location_shrine":"","notes":"چھوٹے بھائی سید وسیم قیصر ہاشمی"},
+          {"id":146,"generation":44,"name_urdu":"سید محمد ندیم قیصر ہاشمی","parent_id":122,"father_urdu":"سید قیصر الدین عادل ہاشمی","title_alias":"ندیم قیصر ہاشمی","branch":"ساداتِ ہاشمیہ (شاخ قیصر الدین)","location_shrine":"","notes":"فرزند: سید محمد تقی عباس"},
+          {"id":147,"generation":45,"name_urdu":"سید سعد بن سہیل","parent_id":142,"father_urdu":"سید محمد سہیل قیصر ہاشمی","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ قیصر الدین)","location_shrine":"","notes":"فرزند: سید ابراہیم ہاشمی"},
+          {"id":148,"generation":45,"name_urdu":"سید سفیان بن سہیل","parent_id":142,"father_urdu":"سید محمد سہیل قیصر ہاشمی","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ قیصر الدین)","location_shrine":"","notes":"فرزند سید محمد سہیل قیصر ہاشمی"},
+          {"id":149,"generation":46,"name_urdu":"سید ابراہیم ہاشمی","parent_id":147,"father_urdu":"سید سعد بن سہیل","title_alias":"","branch":"ساداتِ ہاشمیہ (شاخ قیصر الدین)","location_shrine":"","notes":"فرزند سید سعد بن سہیل"},
+          {"id":150,"generation":45,"name_urdu":"سید طلحہ بن سلیم ہاشمی","parent_id":143,"father_urdu":"سید محمد سلیم قیصر ہاشمی","title_alias":"طلحہ بن سلیم ہاشمی (اکلوتا بیٹا)","branch":"ساداتِ ہاشمیہ (شاخ قیصر الدین)","location_shrine":"لاہور، پاکستان","notes":"اکلوتا فرزند سید محمد سلیم قیصر ہاشمی"},
+          {"id":151,"generation":45,"name_urdu":"سید محمد تقی عباس","parent_id":146,"father_urdu":"سید محمد ندیم قیصر ہاشمی","title_alias":"تقی عباس","branch":"ساداتِ ہاشمیہ (شاخ قیصر الدین)","location_shrine":"","notes":"فرزند سید محمد ندیم قیصر ہاشمی"}
+        ];
+
+        // Extended Genealogical Dataset (266 Members)
+        const rawCSVRecords = `ID,Name,Parent_ID,Parent_Name,Generation,Gender,Pillar,Details
+GEN-001,راجہ ٹوڈر مل,,,0,male,سہگل خاندان,مغل شہنشاہ اکبر کا وزیرِ قانون و مال (سہگل خاندان کے جدِ اعلیٰ)
+GEN-002,سید الٰہی بخش شاہ,,,0,male,شام چوراسی سادات,مورثِ اعلیٰ (شام چوراسی، ضلع ہوشیار پور)
+GEN-003,سید پیر فتح الدین شاہ ہاشمی,,,1,male,ددھیال,مزار: میراں جی دا باغ، قصبہ ہریانہ، ضلع ہوشیار پور — زوجہ: برکت بی بی سہگل
+GEN-004,برکت بی بی سہگل,GEN-001,میاں سہگل,1,female,سہگل خاندان,18ویں صدی میں اسلام قبول کیا — زوجہ: سید پیر فتح الدین شاہ ہاشمی
+GEN-005,میاں مہتاب دین سہگل,GEN-001,راجہ ٹوڈر مل خاندان,1,male,سہگل خاندان,بھائی: میاں گلاب دین سہگل و برکت بی بی
+GEN-006,میاں گلاب دین سہگل,GEN-001,راجہ ٹوڈر مل خاندان,1,male,سہگل خاندان,بزرگ سہگل خاندان
+GEN-007,سید نور الدین شاہ,,,1,male,ساداتِ نور الدین شاہ,زوجہ: مادی بیگم
+GEN-008,سید شمس الدین شاہ,GEN-002,سید الٰہی بخش شاہ,1,male,شام چوراسی سادات,شام چوراسی، ضلع ہوشیار پور
+GEN-009,مولوی سید مبارک علی شاہ,,,1,male,ساداتِ مبارک علی شاہ,زوجہ: فضل بی بی بنت برکت علی سہگل
+GEN-010,سید گلاب دین,,,1,male,چوہڑوالی سادات,سکونت: چوہڑوالی، جالندھر
+GEN-011,سید قطب الدین ہاشمی,GEN-003,سید پیر فتح الدین شاہ ہاشمی,2,male,ددھیال,فرزند: سید پیر فتح الدین شاہ ہاشمی
+GEN-012,مراد بی بی,GEN-003,سید پیر فتح الدین شاہ ہاشمی,2,female,ددھیال,شوہر: سید وزیر الدین شاہ
+GEN-013,میراں سید فخر الدین ہاشمی,GEN-003,سید پیر فتح الدین شاہ ہاشمی,2,male,ددھیال,مزار: میراں جی دا باغ، قصبہ ہریانہ، ہوشیار پور — زوجہ: حسین بی بی سہگل
+GEN-014,برکت علی سہگل,GEN-005,میاں مہتاب دین سہگل,2,male,سہگل خاندان,زوجہ: نور بیگم
+GEN-015,ڈاکٹر فضل الدین سہگل,GEN-006,میاں گلاب دین سہگل,2,male,سہگل خاندان,برٹش آرمی ڈاکٹر (پہلی و دوسری جنگ عظیم) — چک 85-86 ساہیوال اراضی الاٹمنٹ
+GEN-016,فضل النساء سہگل,GEN-006,میاں گلاب دین سہگل,2,female,سہگل خاندان,والدہ: دوسری بیگم میاں گلاب دین
+GEN-017,حسین بی بی سہگل,GEN-006,میاں گلاب دین سہگل,2,female,سہگل خاندان,شوہر: میراں سید فخر الدین ہاشمی
+GEN-018,فیروز الدین سہگل,GEN-006,میاں گلاب دین سہگل,2,male,سہگل خاندان,زوجہ: فضل بی بی بنت برکت علی سہگل
+GEN-019,سید نواب شاہ,GEN-007,سید نور الدین شاہ,2,male,ساداتِ نور الدین شاہ,زوجہ: اللہ دی
+GEN-020,سید گل باز شاہ,GEN-007,سید نور الدین شاہ,2,male,ساداتِ نور الدین شاہ,زوجہ: چراغ بی بی بنت برکت علی سہگل
+GEN-021,سید گل شیر شاہ,GEN-007,سید نور الدین شاہ,2,male,ساداتِ نور الدین شاہ,زوجہ: سیدہ عزیز بی بی بنت سید وزیر الدین شاہ
+GEN-022,سید نظام الدین شاہ,GEN-008,سید شمس الدین شاہ,2,male,ننھیال / شام چوراسی,شام چوراسی، ضلع ہوشیار پور
+GEN-023,سید امام الدین شاہ,GEN-008,سید شمس الدین شاہ,2,male,شام چوراسی سادات,شام چوراسی
+GEN-024,پیر سید نجم الدین شاہ (جاموں شاہ),GEN-008,سید شمس الدین شاہ,2,male,شام چوراسی سادات,مزار مبارک: مچھری وال، ضلع ہوشیار پور
+GEN-025,مولوی محمود علی شاہ,GEN-009,مولوی سید مبارک علی شاہ,2,male,ساداتِ مبارک علی شاہ,بڑے بیٹے
+GEN-026,سرداراں بی بی,GEN-009,مولوی سید مبارک علی شاہ,2,female,ساداتِ مبارک علی شاہ,شوہر: سید تاج الدین ہاشمی
+GEN-027,صفدری بیگم,GEN-009,مولوی سید مبارک علی شاہ,2,female,ساداتِ مبارک علی شاہ,شوہر: انور علی شاہ
+GEN-028,انوری بیگم,GEN-009,مولوی سید مبارک علی شاہ,2,female,ساداتِ مبارک علی شاہ,شوہر: مقصود علی شاہ
+GEN-029,مولوی سید اختر حسین شاہ,GEN-009,مولوی سید مبارک علی شاہ,2,male,ساداتِ مبارک علی شاہ,زوجہ: اکبری بیگم
+GEN-030,سید شاہ دین,GEN-010,سید گلاب دین,2,male,چوہڑوالی سادات,پھاٹک والی حویلی، ڈگلس پورہ، لائل پور (فیصل آباد)
+GEN-031,سید شہاب الدین شاہ (شابو),GEN-010,سید گلاب دین,2,male,چوہڑوالی سادات,سکونت: چوہڑوالی، جالندھر
+GEN-032,عزیز بی بی,GEN-011,سید قطب الدین ہاشمی,3,female,ددھیال,دختر: سید قطب الدین ہاشمی
+GEN-033,سید چراغ الدین شاہ,GEN-012,مراد بی بی و سید وزیر الدین,3,male,ساداتِ وزیر الدین شاہ,فرزند
+GEN-034,عزیز بی بی,GEN-012,مراد بی بی و سید وزیر الدین,3,female,ساداتِ وزیر الدین شاہ,شوہر: سید گل شیر شاہ
+GEN-035,سید جلال الدین شاہ,GEN-012,مراد بی بی و سید وزیر الدین,3,male,ساداتِ وزیر الدین شاہ,فرزند
+GEN-036,سید نواب الدین شاہ,GEN-012,مراد بی بی و سید وزیر الدین,3,male,ساداتِ وزیر الدین شاہ,زوجہ: کشور سلطانہ بنت میراں سید فخر الدین ہاشمی
+GEN-037,اسلم شاہ,GEN-012,مراد بی بی و سید وزیر الدین,3,male,ساداتِ وزیر الدین شاہ,فرزند
+GEN-038,اشرف شاہ,GEN-012,مراد بی بی و سید وزیر الدین,3,male,ساداتِ وزیر الدین شاہ,فرزند
+GEN-039,سلیم بی بی,GEN-012,مراد بی بی و سید وزیر الدین,3,female,ساداتِ وزیر الدین شاہ,دختر
+GEN-040,سید تاج الدین ہاشمی (معشوق علی),GEN-013,میراں سید فخر الدین ہاشمی,3,male,ددھیال,زوجہ: سرداراں بی بی بنت مولوی سید مبارک علی شاہ
+GEN-041,کشور سلطانہ,GEN-013,میراں سید فخر الدین ہاشمی,3,female,ددھیال,شوہر: سید نواب الدین شاہ ولد سید وزیر الدین شاہ
+GEN-042,مستوراں بی بی,GEN-013,میراں سید فخر الدین ہاشمی,3,female,ننھیال سنگم,پرنانی — شوہر: سید محمد نذیر شاہ
+GEN-043,غفوراں بی بی,GEN-013,میراں سید فخر الدین ہاشمی,3,female,ددھیال,شوہر: محمد دین علوی (واہ کینٹ)
+GEN-044,سید قیصر الدین عادل ہاشمی,GEN-013,میراں سید فخر الدین ہاشمی,3,male,ددھیال,دادا — زوجہ: سیدہ بلقیس بیگم بنت پیر سید فضل الدین شامی
+GEN-045,سید حسن علیم الدین ہاشمی,GEN-013,میراں سید فخر الدین ہاشمی,3,male,ددھیال,چھوٹے بھائی: سید قیصر الدین عادل ہاشمی
+GEN-046,چراغ بی بی سہگل,GEN-014,برکت علی سہگل,3,female,سہگل خاندان,شوہر: سید گل باز شاہ
+GEN-047,فضل بی بی سہگل,GEN-014,برکت علی سہگل,3,female,سہگل خاندان,شوہر ۱: مولوی سید مبارک علی شاہ، شوہر ۲: فیروز الدین سہگل
+GEN-048,جنت بی بی سہگل,GEN-014,برکت علی سہگل,3,female,سہگل خاندان,شوہر: پیر سید فضل الدین شامی — والدہ: سیدہ بلقیس بیگم
+GEN-049,محمد دین سہگل,GEN-014,برکت علی سہگل,3,male,سہگل خاندان,لاولد
+GEN-050,انوار ارشاد بیگم سہگل,GEN-018,فیروز الدین سہگل,3,female,سہگل خاندان,دختر
+GEN-051,نصیر الدین سہگل,GEN-018,فیروز الدین سہگل,3,male,سہگل خاندان,فرزند
+GEN-052,سید احمد حسین شاہ,GEN-019,سید نواب شاہ,3,male,ساداتِ نور الدین شاہ,فرزند
+GEN-053,سید فضل محمد شاہ,GEN-019,سید نواب شاہ,3,male,ساداتِ نور الدین شاہ,فرزند
+GEN-054,سید علی احمد شاہ,GEN-020,سید گل باز شاہ,3,male,ساداتِ نور الدین شاہ,فرزند
+GEN-055,سید نیاز احمد شاہ,GEN-020,سید گل باز شاہ,3,male,ساداتِ نور الدین شاہ,فرزند
+GEN-056,فرحت بی بی,GEN-020,سید گل باز شاہ,3,female,ساداتِ نور الدین شاہ,دختر
+GEN-057,خورشید بی بی,GEN-020,سید گل باز شاہ,3,female,ساداتِ نور الدین شاہ,اولاد: سکینہ، غلام محمد شاہ، سلطان محمد شاہ، اللہ دتا، زاہدہ
+GEN-058,سید ولی محمد شاہ,GEN-020,سید گل باز شاہ,3,male,ساداتِ نور الدین شاہ,فرزند
+GEN-059,سید سردار شاہ,GEN-021,سید گل شیر شاہ,3,male,ساداتِ نور الدین شاہ,فرزند
+GEN-060,سید گلزار شاہ,GEN-021,سید گل شیر شاہ,3,male,ساداتِ نور الدین شاہ,فرزند
+GEN-061,سید فضل شاہ,GEN-021,سید گل شیر شاہ,3,male,ساداتِ نور الدین شاہ,فرزند
+GEN-062,پیر سید فضل الدین شامی,GEN-022,سید نظام الدین شاہ,3,male,دادی کا میکہ,مزار: شام چوراسی، ہوشیار پور — زوجہ: جنت بی بی سہگل
+GEN-063,سید عزیز الدین شاہ,GEN-022,سید نظام الدین شاہ,3,male,شام چوراسی سادات,لاولد
+GEN-064,سید محمد نذیر شاہ,GEN-022,سید نظام الدین شاہ,3,male,ننھیال,پرنانا — سکونت: پنج پیر محلہ جالندھر / آبائی: شام چوراسی — زوجہ: مستوراں بی بی
+GEN-065,پیر سید وزیر علی شاہ,GEN-022,سید نظام الدین شاہ,3,male,شام چوراسی سادات,فرزند
+GEN-066,تاج الدین,GEN-023,سید امام الدین شاہ,3,male,شام چوراسی سادات,عمر 18 سال (لاولد)
+GEN-067,نرگس بی بی,GEN-025,مولوی محمود علی شاہ,3,female,ساداتِ مبارک علی شاہ,دختر
+GEN-068,شوکت علی شاہ,GEN-025,مولوی محمود علی شاہ,3,male,ساداتِ مبارک علی شاہ,سسر: سید محمد ندیم قیصر ہاشمی
+GEN-069,تسلیم بانو,GEN-025,مولوی محمود علی شاہ,3,female,ساداتِ مبارک علی شاہ,دختر
+GEN-070,رفاقت شاہ,GEN-025,مولوی محمود علی شاہ,3,male,ساداتِ مبارک علی شاہ,فرزند
+GEN-071,مقبول شاہ,GEN-025,مولوی محمود علی شاہ,3,male,ساداتِ مبارک علی شاہ,فرزند
+GEN-072,سید وزیر الدین شاہ,GEN-031,سید شہاب الدین شاہ (شابو),3,male,چوہڑوالی سادات,زوجہ: مراد بی بی بنت سید پیر فتح الدین شاہ
+GEN-073,رحمت شاہ,GEN-032,عزیز بی بی بنت قطب الدین,4,male,ددھیال,فرزند
+GEN-074,اللہ دتا شاہ,GEN-032,عزیز بی بی بنت قطب الدین,4,male,ددھیال,فرزند
+GEN-075,کنیز فاطمہ,GEN-032,عزیز بی بی بنت قطب الدین,4,female,ددھیال,دختر
+GEN-076,جمیلہ بیگم,GEN-040,سید تاج الدین ہاشمی (معشوق علی),4,female,ددھیال,شوہر: محمد اقبال علوی ولد محمد دین علوی (واہ کینٹ)
+GEN-077,طاہرہ بیگم,GEN-040,سید تاج الدین ہاشمی (معشوق علی),4,female,ددھیال,شوہر: محمد صدیق علوی ولد محمد دین علوی (واہ کینٹ)
+GEN-078,خالدہ بیگم,GEN-040,سید تاج الدین ہاشمی (معشوق علی),4,female,ددھیال,شوہر: سید محمد حنیف شاہ ولد سید گلزار محمد شاہ و رفیقاں بیگم
+GEN-079,سید خالد محمود رفیع شاہ,GEN-040,سید تاج الدین ہاشمی (معشوق علی),4,male,ددھیال,عرف: رفیع شاہ
+GEN-080,نصرت ہاشمی,GEN-044,سید قیصر الدین عادل ہاشمی,4,female,ددھیال,بڑی بیٹی
+GEN-081,سید محمد سہیل قیصر ہاشمی,GEN-044,سید قیصر الدین عادل ہاشمی,4,male,ددھیال,فرزند
+GEN-082,عشرت شبیر ہاشمی,GEN-044,سید قیصر الدین عادل ہاشمی,4,female,ددھیال,شوہر: سید شبیر حسین شاہ ولد سید رشید احمد شاہ
+GEN-083,روزینہ عاصم ہاشمی,GEN-044,سید قیصر الدین عادل ہاشمی,4,female,ددھیال,شوہر: شہزادہ سید عاصم علیم
+GEN-084,سید محمد سلیم قیصر ہاشمی,GEN-044,سید قیصر الدین عادل ہاشمی,4,male,ددھیال,والد — زوجہ: سیدہ راشدہ بنت سید محمد صدیق شاہ (شادی: 1996ء)
+GEN-085,سید محمد وسیم قیصر ہاشمی,GEN-044,سید قیصر الدین عادل ہاشمی,4,male,ددھیال,فرزند
+GEN-086,سید محمد نعیم قیصر ہاشمی,GEN-044,سید قیصر الدین عادل ہاشمی,4,male,ددھیال,فرزند
+GEN-087,سید محمد ندیم قیصر ہاشمی,GEN-044,سید قیصر الدین عادل ہاشمی,4,male,ددھیال,زوجہ: بیگم ریتا، سسر: شوکت علی شاہ
+GEN-088,شہزادہ سید عاصم علیم,GEN-045,سید حسن علیم الدین ہاشمی,4,male,ددھیال,زوجہ: روزینہ عاصم ہاشمی
+GEN-089,سید شعیب علیم,GEN-045,سید حسن علیم الدین ہاشمی,4,male,ددھیال,فرزند
+GEN-090,سید کاشف علیم,GEN-045,سید حسن علیم الدین ہاشمی,4,male,ددھیال,فرزند
+GEN-091,فرزانہ شاہین سہگل,GEN-051,نصیر الدین سہگل,4,female,سہگل خاندان,شوہر: سید محمد یوسف شاہ ولد سید رشید احمد شاہ
+GEN-092,سید سلطان احمد شاہ,GEN-053,سید فضل محمد شاہ,4,male,ساداتِ نور الدین شاہ,فرزند
+GEN-093,سید غلام محمد شاہ (گامے شاہ),GEN-053,سید فضل محمد شاہ,4,male,ساداتِ نور الدین شاہ,فرزند
+GEN-094,سید محمد بشیر شاہ,GEN-054,سید علی احمد شاہ,4,male,ساداتِ نور الدین شاہ,سکونت: شیخوپورہ
+GEN-095,اصغری بیگم,GEN-054,سید علی احمد شاہ,4,female,ساداتِ نور الدین شاہ,دختر
+GEN-096,اکبری بیگم,GEN-054,سید علی احمد شاہ,4,female,ساداتِ نور الدین شاہ,دختر
+GEN-097,صفدری بیگم,GEN-054,سید علی احمد شاہ,4,female,ساداتِ نور الدین شاہ,دختر
+GEN-098,حیدری بیگم,GEN-054,سید علی احمد شاہ,4,female,ساداتِ نور الدین شاہ,دختر
+GEN-099,شمیم,GEN-054,سید علی احمد شاہ,4,female,ساداتِ نور الدین شاہ,دختر
+GEN-100,بشریٰ,GEN-054,سید علی احمد شاہ,4,female,ساداتِ نور الدین شاہ,دختر
+GEN-101,شگفتہ,GEN-054,سید علی احمد شاہ,4,female,ساداتِ نور الدین شاہ,دختر
+GEN-102,سید اشرف شاہ,GEN-055,سید نیاز احمد شاہ,4,male,ساداتِ نور الدین شاہ,فرزند
+GEN-103,سید ارشد شاہ,GEN-055,سید نیاز احمد شاہ,4,male,ساداتِ نور الدین شاہ,فرزند
+GEN-104,سید اکرم شاہ,GEN-055,سید نیاز احمد شاہ,4,male,ساداتِ نور الدین شاہ,فرزند
+GEN-105,سید صفدر علی شاہ,GEN-059,سید سردار شاہ,4,male,ساداتِ نور الدین شاہ,فرزند
+GEN-106,سید سرور علی شاہ,GEN-059,سید سردار شاہ,4,male,ساداتِ نور الدین شاہ,فرزند
+GEN-107,سید ذوالفقار علی شاہ (بھٹو),GEN-059,سید سردار شاہ,4,male,ساداتِ نور الدین شاہ,فرزند
+GEN-108,سید انوار علی شاہ (گوگا),GEN-059,سید سردار شاہ,4,male,ساداتِ نور الدین شاہ,فرزند
+GEN-109,سید افضال شاہ,GEN-060,سید گلزار شاہ,4,male,ساداتِ نور الدین شاہ,فرزند
+GEN-110,سید دلشاد شاہ,GEN-060,سید گلزار شاہ,4,male,ساداتِ نور الدین شاہ,فرزند
+GEN-111,سید امجد شاہ,GEN-061,سید فضل شاہ,4,male,ساداتِ نور الدین شاہ,فرزند
+GEN-112,سید راشد شاہ,GEN-061,سید فضل شاہ,4,male,ساداتِ نور الدین شاہ,فرزند
+GEN-113,سید ساجد شاہ,GEN-061,سید فضل شاہ,4,male,ساداتِ نور الدین شاہ,فرزند
+GEN-114,سید آصف شاہ,GEN-061,سید فضل شاہ,4,male,ساداتِ نور الدین شاہ,فرزند
+GEN-115,سید مجاہد شاہ,GEN-061,سید فضل شاہ,4,male,ساداتِ نور الدین شاہ,فرزند
+GEN-116,سید سخاوت شاہ,GEN-061,سید فضل شاہ,4,male,ساداتِ نور الدین شاہ,فرزند
+GEN-117,سید محمد رشید شاہ,GEN-062,پیر سید فضل الدین شامی,4,male,دادی کا میکہ,بڑے فرزند
+GEN-118,سید محمد شریف شاہ,GEN-062,پیر سید فضل الدین شامی,4,male,دادی کا میکہ,فرزند
+GEN-119,سید محمد رفیق شاہ,GEN-062,پیر سید فضل الدین شامی,4,male,دادی کا میکہ,فرزند
+GEN-120,شریفاں بی بی,GEN-062,پیر سید فضل الدین شامی,4,female,دادی کا میکہ,دختر
+GEN-121,رفیقاں بیگم,GEN-062,پیر سید فضل الدین شامی,4,female,دادی کا میکہ,شوہر: سید گلزار محمد شاہ
+GEN-122,سیدہ بلقیس بیگم,GEN-062,پیر سید فضل الدین شامی,4,female,دادی کا میکہ,دادی — شوہر: سید قیصر الدین عادل ہاشمی
+GEN-123,سید محمد صدیق شاہ,GEN-064,سید محمد نذیر شاہ,4,male,ننھیال,نانا — بڑے فرزند
+GEN-124,سید محمد لطیف شاہ,GEN-064,سید محمد نذیر شاہ,4,male,ننھیال,ماسٹر سید لطیف شاہ
+GEN-125,لطیفاں بی بی,GEN-064,سید محمد نذیر شاہ,4,female,ننھیال,دختر
+GEN-126,سید محمد شفیق شاہ,GEN-064,سید محمد نذیر شاہ,4,male,ننھیال,فرزند
+GEN-127,سید محمد عارف شاہ,GEN-064,سید محمد نذیر شاہ,4,male,ننھیال,فرزند
+GEN-128,سید محمد حنیف شاہ,GEN-064,سید محمد نذیر شاہ,4,male,ننھیال,فرزند
+GEN-129,سیدہ شاہین احسن,GEN-064,سید محمد نذیر شاہ,4,female,ننھیال,شوہر: سید احسن گیلانی ولد سید ارشد شاہ آف چک وحی (اولادِ میراں بہاوالدین گیلانی حجرہ شاہ مقیم)
+GEN-130,سیدہ نسرین,GEN-064,سید محمد نذیر شاہ,4,female,ننھیال,شوہر: سید محمد زاہد شاہ ولد سید محمد الطاف حسین شاہ
+GEN-131,سید حبیب الحسن شاہ,GEN-064,سید محمد نذیر شاہ,4,male,ننھیال,فرزند
+GEN-132,سید بوٹے شاہ (اللہ دتا),GEN-033,سید چراغ الدین شاہ,4,male,ساداتِ چراغ الدین,فرزند
+GEN-133,سید مظفر حسین شاہ,GEN-065,پیر سید وزیر علی شاہ,4,male,ساداتِ وزیر علی شاہ,فرزند
+GEN-134,سید ذوالفقار علی شاہ (زلفی),GEN-075,کنیز فاطمہ,5,male,ددھیال,اولاد فیصل آباد میں آباد ہے
+GEN-135,سید عمران شاہ,GEN-079,سید خالد محمود رفیع شاہ,5,male,ددھیال,فرزند
+GEN-136,سید عرفان شاہ,GEN-079,سید خالد محمود رفیع شاہ,5,male,ددھیال,فرزند
+GEN-137,سید جبران شاہ,GEN-079,سید خالد محمود رفیع شاہ,5,male,ددھیال,فرزند
+GEN-138,سید رضوان شاہ,GEN-079,سید خالد محمود رفیع شاہ,5,male,ددھیال,فرزند
+GEN-139,سید سعد ہاشمی,GEN-081,سید محمد سہیل قیصر ہاشمی,5,male,ددھیال,فرزند
+GEN-140,سید سفیان ہاشمی,GEN-081,سید محمد سہیل قیصر ہاشمی,5,male,ددھیال,فرزند
+GEN-141,سید طلحہ بن سلیم ہاشمی,GEN-084,سید محمد سلیم قیصر ہاشمی,5,male,مرکزی ذات (Self),والدہ: سیدہ راشدہ بنت سید محمد صدیق شاہ
+GEN-142,سید محمد تقی عباس ہاشمی,GEN-087,سید محمد ندیم قیصر ہاشمی,5,male,ددھیال,فرزند
+GEN-143,سید فضیل ہاشمی,GEN-088,شہزادہ سید عاصم علیم,5,male,ددھیال,فرزند
+GEN-144,سید حذیفہ ہاشمی,GEN-088,شہزادہ سید عاصم علیم,5,male,ددھیال,فرزند
+GEN-145,سید احمد شعیب,GEN-089,سید شعیب علیم,5,male,ددھیال,فرزند
+GEN-146,سید علی شعیب,GEN-089,سید شعیب علیم,5,male,ددھیال,فرزند
+GEN-147,سید عبدالہادی,GEN-090,سید کاشف علیم,5,male,ددھیال,فرزند
+GEN-148,سید ریحان شاہ,GEN-090,سید کاشف علیم,5,male,ددھیال,فرزند
+GEN-149,سید عمران احمد,GEN-092,سید سلطان احمد شاہ,5,male,ساداتِ نور الدین شاہ,فرزند
+GEN-150,سید عدنان احمد,GEN-092,سید سلطان احمد شاہ,5,male,ساداتِ نور الدین شاہ,فرزند
+GEN-151,سید مصطفیٰ علی,GEN-093,سید غلام محمد شاہ (گامے شاہ),5,male,ساداتِ نور الدین شاہ,فرزند
+GEN-152,سید مرتضیٰ علی,GEN-093,سید غلام محمد شاہ (گامے شاہ),5,male,ساداتِ نور الدین شاہ,فرزند
+GEN-153,سید جاوید علی,GEN-093,سید غلام محمد شاہ (گامے شاہ),5,male,ساداتِ نور الدین شاہ,فرزند
+GEN-154,سید ارشاد علی (کالو),GEN-093,سید غلام محمد شاہ (گامے شاہ),5,male,ساداتِ نور الدین شاہ,فرزند
+GEN-155,سید ارشد علی (گوگا),GEN-093,سید غلام محمد شاہ (گامے شاہ),5,male,ساداتِ نور الدین شاہ,فرزند
+GEN-156,سید اورنگزیب شاہ,GEN-094,سید محمد بشیر شاہ,5,male,ساداتِ نور الدین شاہ,فرزند
+GEN-157,سید خلیل شاہ,GEN-094,سید محمد بشیر شاہ,5,male,ساداتِ نور الدین شاہ,فرزند
+GEN-158,سید ذو القرنین شاہ,GEN-094,سید محمد بشیر شاہ,5,male,ساداتِ نور الدین شاہ,فرزند
+GEN-159,سید ریاض علی شاہ,GEN-094,سید محمد بشیر شاہ,5,male,ساداتِ نور الدین شاہ,فرزند
+GEN-160,سید بشارت علی شاہ,GEN-094,سید محمد بشیر شاہ,5,male,ساداتِ نور الدین شاہ,فرزند
+GEN-161,سید یٰسین بدر,GEN-094,سید محمد بشیر شاہ,5,male,ساداتِ نور الدین شاہ,فرزند
+GEN-162,سید گلزار حسین,GEN-117,سید محمد رشید شاہ,5,male,دادی کا میکہ,فرزند
+GEN-163,سید یوسف حسین,GEN-117,سید محمد رشید شاہ,5,male,دادی کا میکہ,فرزند
+GEN-164,سید شبیر حسین,GEN-117,سید محمد رشید شاہ,5,male,دادی کا میکہ,زوجہ: عشرت شبیر ہاشمی
+GEN-165,سید منیر حسین,GEN-117,سید محمد رشید شاہ,5,male,دادی کا میکہ,فرزند
+GEN-166,سید قدیر حسین,GEN-117,سید محمد رشید شاہ,5,male,دادی کا میکہ,فرزند
+GEN-167,سید جمشید حسین,GEN-117,سید محمد رشید شاہ,5,male,دادی کا میکہ,فرزند
+GEN-168,سید محسن شاہ,GEN-118,سید محمد شریف شاہ,5,male,دادی کا میکہ,فرزند
+GEN-169,سید حسن شاہ,GEN-118,سید محمد شریف شاہ,5,male,دادی کا میکہ,فرزند
+GEN-170,سید عاصم شاہ,GEN-118,سید محمد شریف شاہ,5,male,دادی کا میکہ,فرزند
+GEN-171,سید منور شاہ,GEN-118,سید محمد شریف شاہ,5,male,دادی کا میکہ,فرزند
+GEN-172,سید اسد شاہ,GEN-119,سید محمد رفیق شاہ,5,male,دادی کا میکہ,فرزند
+GEN-173,سید اقدس شاہ,GEN-119,سید محمد رفیق شاہ,5,male,دادی کا میکہ,فرزند
+GEN-174,سید عامر شاہ,GEN-119,سید محمد رفیق شاہ,5,male,دادی کا میکہ,فرزند
+GEN-175,سید طاہر شاہ,GEN-123,سید محمد صدیق شاہ,5,male,ننھیال,فرزند
+GEN-176,سید زاہد شاہ,GEN-123,سید محمد صدیق شاہ,5,male,ننھیال,فرزند
+GEN-177,سید محمد عدیل شاہ,GEN-123,سید محمد صدیق شاہ,5,male,ننھیال,فرزند
+GEN-178,سید یاسر شاہ,GEN-123,سید محمد صدیق شاہ,5,male,ننھیال,فرزند
+GEN-179,سید ساجد شاہ,GEN-123,سید محمد صدیق شاہ,5,male,ننھیال,فرزند
+GEN-180,سید اسامہ شاہ,GEN-123,سید محمد صدیق شاہ,5,male,ننھیال,فرزند
+GEN-181,سید ابو بکر شاہ,GEN-123,سید محمد صدیق شاہ,5,male,ننھیال,فرزند
+GEN-182,سیدہ راشدہ,GEN-123,سید محمد صدیق شاہ,5,female,ننھیال,والدہ — شوہر: سید محمد سلیم قیصر ہاشمی
+GEN-183,سید شاہد شاہ,GEN-124,سید محمد لطیف شاہ,5,male,ننھیال,فرزند
+GEN-184,سید راشد شاہ,GEN-124,سید محمد لطیف شاہ,5,male,ننھیال,فرزند
+GEN-185,سید کاشف رضا,GEN-124,سید محمد لطیف شاہ,5,male,ننھیال,فرزند
+GEN-186,سید حسن رضا,GEN-124,سید محمد لطیف شاہ,5,male,ننھیال,فرزند
+GEN-187,سید شاہ حسین,GEN-124,سید محمد لطیف شاہ,5,male,ننھیال,فرزند
+GEN-188,سید عادل شاہ,GEN-126,سید محمد شفیق شاہ,5,male,ننھیال,فرزند
+GEN-189,سید ناصر شاہ,GEN-126,سید محمد شفیق شاہ,5,male,ننھیال,فرزند
+GEN-190,سید نعمان حیدر,GEN-126,سید محمد شفیق شاہ,5,male,ننھیال,فرزند
+GEN-191,سید شہباز حیدر,GEN-126,سید محمد شفیق شاہ,5,male,ننھیال,فرزند
+GEN-192,سید ابرار حیدر,GEN-126,سید محمد شفیق شاہ,5,male,ننھیال,فرزند
+GEN-193,سید حسنین شاہ,GEN-126,سید محمد شفیق شاہ,5,male,ننھیال,فرزند
+GEN-194,سید آصف شاہ,GEN-127,سید محمد عارف شاہ,5,male,ننھیال,فرزند
+GEN-195,سید امیر حمزہ,GEN-127,سید محمد عارف شاہ,5,male,ننھیال,فرزند
+GEN-196,سید ابو ہریرہ,GEN-127,سید محمد عارف شاہ,5,male,ننھیال,فرزند
+GEN-197,سید علی رضا,GEN-128,سید محمد حنیف شاہ,5,male,ننھیال,فرزند
+GEN-198,سید محسن رضا,GEN-128,سید محمد حنیف شاہ,5,male,ننھیال,فرزند
+GEN-199,سید طیب حنیف,GEN-128,سید محمد حنیف شاہ,5,male,ننھیال,فرزند
+GEN-200,سید کامل حبیب,GEN-131,سید حبیب الحسن شاہ,5,male,ننھیال,فرزند
+GEN-201,سید حسیب الحسن,GEN-131,سید حبیب الحسن شاہ,5,male,ننھیال,فرزند
+GEN-202,سید اشفاق احمد,GEN-132,سید بوٹے شاہ (اللہ دتا),5,male,ساداتِ چراغ الدین,فرزند
+GEN-203,سید فیاض احمد,GEN-132,سید بوٹے شاہ (اللہ دتا),5,male,ساداتِ چراغ الدین,فرزند
+GEN-204,سید شہباز احمد,GEN-132,سید بوٹے شاہ (اللہ دتا),5,male,ساداتِ چراغ الدین,فرزند
+GEN-205,سید شوکت حسین شاہ,GEN-133,سید مظفر حسین شاہ,5,male,ساداتِ وزیر علی شاہ,فرزند
+GEN-206,سید لیاقت حسین شاہ,GEN-133,سید مظفر حسین شاہ,5,male,ساداتِ وزیر علی شاہ,فرزند
+GEN-207,سید رفاقت حسین شاہ,GEN-133,سید مظفر حسین شاہ,5,male,ساداتِ وزیر علی شاہ,فرزند
+GEN-208,سید عاشق حسین شاہ,GEN-133,سید مظفر حسین شاہ,5,male,ساداتِ وزیر علی شاہ,فرزند
+GEN-209,سید ابراہیم ہاشمی,GEN-139,سید سعد ہاشمی,6,male,ددھیال,دادا: سید محمد سہیل قیصر ہاشمی
+GEN-210,سید گلفام علی شاہ,GEN-136,سید عرفان شاہ,6,male,ددھیال,فرزند
+GEN-211,سید ارمان علی شاہ,GEN-136,سید عرفان شاہ,6,male,ددھیال,فرزند
+GEN-212,سید فیضان علی شاہ,GEN-137,سید جبران شاہ,6,male,ددھیال,فرزند
+GEN-213,سید محمد ابراہیم,GEN-156,سید اورنگزیب شاہ,6,male,ساداتِ نور الدین شاہ,فرزند
+GEN-214,سید ساگر علی شاہ,GEN-157,سید خلیل شاہ,6,male,ساداتِ نور الدین شاہ,فرزند
+GEN-215,سید حسین علی شاہ,GEN-158,سید ذو القرنین شاہ,6,male,ساداتِ نور الدین شاہ,فرزند
+GEN-216,سید زین علی شاہ,GEN-159,سید ریاض علی شاہ,6,male,ساداتِ نور الدین شاہ,فرزند
+GEN-217,سید دانش علی شاہ,GEN-159,سید ریاض علی شاہ,6,male,ساداتِ نور الدین شاہ,فرزند
+GEN-218,سید ذیشان علی شاہ,GEN-159,سید ریاض علی شاہ,6,male,ساداتِ نور الدین شاہ,فرزند
+GEN-219,سید زبیر علی شاہ,GEN-160,سید بشارت علی شاہ,6,male,ساداتِ نور الدین شاہ,فرزند
+GEN-220,سید دانش علی,GEN-112,سید راشد شاہ,6,male,ساداتِ نور الدین شاہ,دادا: سید فضل شاہ
+GEN-221,سید علی وارث,GEN-112,سید راشد شاہ,6,male,ساداتِ نور الدین شاہ,دادا: سید فضل شاہ
+GEN-222,سید علی اسد,GEN-112,سید راشد شاہ,6,male,ساداتِ نور الدین شاہ,دادا: سید فضل شاہ
+GEN-223,سید ساحل علی,GEN-112,سید راشد شاہ,6,male,ساداتِ نور الدین شاہ,دادا: سید فضل شاہ
+GEN-224,سید علی حسن,GEN-113,سید ساجد شاہ,6,male,ساداتِ نور الدین شاہ,دادا: سید فضل شاہ
+GEN-225,سید محمد عبداللہ,GEN-114,سید آصف شاہ,6,male,ساداتِ نور الدین شاہ,دادا: سید فضل شاہ
+GEN-226,سید محمد ابراہیم,GEN-114,سید آصف شاہ,6,male,ساداتِ نور الدین شاہ,دادا: سید فضل شاہ
+GEN-227,سید ابرار شاہ,GEN-162,سید گلزار حسین,6,male,دادی کا میکہ,فرزند
+GEN-228,سید وقار شاہ,GEN-162,سید گلزار حسین,6,male,دادی کا میکہ,فرزند
+GEN-229,سید حسنین علی شاہ,GEN-163,سید یوسف حسین,6,male,دادی کا میکہ,فرزند
+GEN-230,سید توقیر حسین شاہ,GEN-164,سید شبیر حسین,6,male,دادی کا میکہ,فرزند
+GEN-231,سید شرجیل حسین شاہ,GEN-164,سید شبیر حسین,6,male,دادی کا میکہ,فرزند
+GEN-232,سید تاثیر حسین شاہ,GEN-164,سید شبیر حسین,6,male,دادی کا میکہ,فرزند
+GEN-233,سید حسن علی شاہ,GEN-166,سید قدیر حسین,6,male,دادی کا میکہ,فرزند
+GEN-234,سید ارسلان علی شاہ,GEN-166,سید قدیر حسین,6,male,دادی کا میکہ,فرزند
+GEN-235,سید عبداللہ شاہ,GEN-168,سید محسن شاہ,6,male,دادی کا میکہ,دادا: سید محمد شریف شاہ
+GEN-236,سید عمر شاہ,GEN-169,سید حسن شاہ,6,male,دادی کا میکہ,دادا: سید محمد شریف شاہ
+GEN-237,سید علی شاہ,GEN-169,سید حسن شاہ,6,male,دادی کا میکہ,دادا: سید محمد شریف شاہ
+GEN-238,سید عبید شاہ,GEN-169,سید حسن شاہ,6,male,دادی کا میکہ,دادا: سید محمد شریف شاہ
+GEN-239,سید عمار شاہ,GEN-170,سید عاصم شاہ,6,male,دادی کا میکہ,دادا: سید محمد شریف شاہ
+GEN-240,سید ثاقب شاہ,GEN-170,سید عاصم شاہ,6,male,دادی کا میکہ,دادا: سید محمد شریف شاہ
+GEN-241,سید عثمان شاہ,GEN-171,سید منور شاہ,6,male,دادی کا میکہ,دادا: سید محمد شریف شاہ
+GEN-242,سید شیروز شاہ,GEN-172,سید اسد شاہ,6,male,دادی کا میکہ,دادا: سید محمد رفیق شاہ
+GEN-243,سید عاشر شاہ,GEN-174,سید عامر شاہ,6,male,دادی کا میکہ,دادا: سید محمد رفیق شاہ
+GEN-244,سید زین شاہ,GEN-174,سید عامر شاہ,6,male,دادی کا میکہ,دادا: سید محمد رفیق شاہ
+GEN-245,سید زین طاہر,GEN-175,سید طاہر شاہ,6,male,ننھیال,دادا: سید محمد صدیق شاہ
+GEN-246,سید زید طاہر,GEN-175,سید طاہر شاہ,6,male,ننھیال,دادا: سید محمد صدیق شاہ
+GEN-247,سید ذیشان طاہر,GEN-175,سید طاہر شاہ,6,male,ننھیال,دادا: سید محمد صدیق شاہ
+GEN-248,سید عثمان طاہر,GEN-175,سید طاہر شاہ,6,male,ننھیال,دادا: سید محمد صدیق شاہ
+GEN-249,سید عمیر طاہر,GEN-175,سید طاہر شاہ,6,male,ننھیال,دادا: سید محمد صدیق شاہ
+GEN-250,سید علی شیر,GEN-175,سید طاہر شاہ,6,male,ننھیال,دادا: سید محمد صدیق شاہ
+GEN-251,سید آلِ محمد,GEN-176,سید زاہد شاہ,6,male,ننھیال,دادا: سید محمد صدیق شاہ
+GEN-252,سید احمد متین,GEN-183,سید شاہد شاہ,6,male,ننھیال,دادا: سید محمد لطیف شاہ
+GEN-253,سید علی شیراز,GEN-184,سید راشد شاہ,6,male,ننھیال,دادا: سید محمد لطیف شاہ
+GEN-254,سید میزان شاہ,GEN-188,سید عادل شاہ,6,male,ننھیال,دادا: سید محمد شفیق شاہ
+GEN-255,سید ارسلان شاہ,GEN-205,سید شوکت حسین شاہ,6,male,ساداتِ وزیر علی شاہ,دادا: سید مظفر حسین شاہ
+GEN-256,سید عثمان شاہ,GEN-205,سید شوکت حسین شاہ,6,male,ساداتِ وزیر علی شاہ,دادا: سید مظفر حسین شاہ
+GEN-257,سید حمزہ,GEN-206,سید لیاقت حسین شاہ,6,male,ساداتِ وزیر علی شاہ,دادا: سید مظفر حسین شاہ
+GEN-258,سید اللہ رکھا,GEN-206,سید لیاقت حسین شاہ,6,male,ساداتِ وزیر علی شاہ,دادا: سید مظفر حسین شاہ
+GEN-259,سید محمد کاشف شاہ,GEN-207,سید رفاقت حسین شاہ,6,male,ساداتِ وزیر علی شاہ,دادا: سید مظفر حسین شاہ
+GEN-260,سید محمد علی شاہ,GEN-207,سید رفاقت حسین شاہ,6,male,ساداتِ وزیر علی شاہ,دادا: سید مظفر حسین شاہ
+GEN-261,سید حسنین شاہ,GEN-208,سید عاشق حسین شاہ,6,male,ساداتِ وزیر علی شاہ,دادا: سید مظفر حسین شاہ
+GEN-262,سید بلال شاہ,GEN-208,سید عاشق حسین شاہ,6,male,ساداتِ وزیر علی شاہ,دادا: سید مظفر حسین شاہ
+GEN-263,سید فائق شاہ,GEN-230,سید توقیر حسین شاہ,7,male,دادی کا میکہ,بڑے فرزند
+GEN-264,سید عبداللہ شاہ,GEN-230,سید توقیر حسین شاہ,7,male,دادی کا میکہ,دوسرے فرزند
+GEN-265,سید محمد عمر,GEN-176,سید زاہد شاہ,6,male,ننھیال,دادا: سید محمد صدیق شاہ
+GEN-266,سید ضامن حسن شاہ,GEN-131,سید حبیب الحسن شاہ,5,male,ننھیال,فرزند`;
+
+        function parseCSVToObjects(csvText) {
+            const lines = csvText.trim().split('\n');
+            const result = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i];
+                if (!line.trim()) continue;
+                
+                const parts = [];
+                let inQuote = false;
+                let current = '';
+                for (let ch of line) {
+                    if (ch === '"') {
+                        inQuote = !inQuote;
+                    } else if (ch === ',' && !inQuote) {
+                        parts.push(current.trim());
+                        current = '';
+                    } else {
+                        current += ch;
+                    }
+                }
+                parts.push(current.trim());
+                
+                if (parts.length >= 8) {
+                    const idStr = parts[0];
+                    const numId = parseInt(idStr.replace('GEN-', '')) + 2000;
+                    const parentIdStr = parts[2];
+                    let parentNumId = null;
+                    if (parentIdStr && parentIdStr.startsWith('GEN-')) {
+                        parentNumId = parseInt(parentIdStr.replace('GEN-', '')) + 2000;
+                    }
+                    
+                    result.push({
+                        id: numId,
+                        code: idStr,
+                        generation: parseInt(parts[4]) || 1,
+                        name_urdu: parts[1],
+                        parent_id: parentNumId,
+                        father_urdu: parts[3] || 'نامعلوم / مورث',
+                        title_alias: parts[6] ? `${parts[6]} (${parts[5] === 'female' ? 'مستورات' : 'مرد'})` : '',
+                        branch: parts[6] || 'خاندانی شاخ',
+                        location_shrine: '',
+                        notes: parts[7] || ''
+                    });
+                }
+            }
+            return result;
+        }
+
+        const familyPillarsData = parseCSVToObjects(rawCSVRecords);
+
+        // State variables
+        let currentMode = 'shajra'; // 'shajra' | 'pillars'
+        let currentActiveData = shajraNasabData;
+        let nodeDataMap = new Map();
+        let currentSelectedPersonId = null;
+        let svg = null;
+        let gCanvas = null;
+        let zoomBehavior = null;
+        let activeHighlightedPathIds = new Set();
+        let mainLineageIds = new Set();
+        let isMainLineageLit = true;
+
+        function parseUrduName(fullName) {
+            if (!fullName) return { prefix: '', core: '', suffix: '' };
+            
+            const prefixList = ['حضرت', 'سیدنا', 'خواجہ', 'سید', 'قاضی', 'مفتی', 'ڈاکٹر', 'پیر سید', 'پیر', 'مولوی سید', 'مولوی', 'میاں', 'ابو جعفر', 'ابو'];
+            const suffixList = ['ﷺ', 'سلام اللہ علیہا', 'علیہ السلام', 'رحمتہ اللہ علیہ', 'رحمتہ اللہ علیہا', 'علیہ الصلوۃ والسلام', 'رضی اللہ عنہ', 'رضی اللہ عنہا', 'شہید'];
+            
+            let prefix = '';
+            let suffix = '';
+            let core = fullName;
+
+            for (let s of suffixList) {
+                if (core.includes(s)) {
+                    suffix = s;
+                    core = core.replace(s, '').trim();
+                    break;
+                }
+            }
+
+            for (let p of prefixList) {
+                if (core.startsWith(p + ' ')) {
+                    prefix = p;
+                    core = core.slice(p.length).trim();
+                    break;
+                }
+            }
+
+            return { prefix, core, suffix };
+        }
+
+        function isFounderNode(p) {
+            if (!p) return false;
+            if (p.id === 1 || p.id === 3 || p.id === 2001 || p.id === 2002 || p.id === 2003 || p.id === 2007 || p.id === 2009 || p.id === 2010) return true;
+            if (p.notes && (p.notes.includes('جدِ') || p.notes.includes('مورثِ') || p.notes.includes('بانی'))) return true;
+            if (p.title_alias && (p.title_alias.includes('جدِ') || p.title_alias.includes('مورثِ') || p.title_alias.includes('بانی'))) return true;
+            return false;
+        }
+
+        function isShrineNode(p) {
+            if (!p) return false;
+            if (p.location_shrine && p.location_shrine.trim().length > 0) return true;
+            if (p.notes && (p.notes.includes('مزار') || p.notes.includes('مدفون'))) return true;
+            return false;
+        }
+
+        function getNodeSubtitle(p) {
+            if (!p) return '';
+            if (p.location_shrine && p.location_shrine.trim().length > 0) {
+                return `🕌 ${p.location_shrine}`;
+            }
+            if (p.title_alias && p.title_alias.trim().length > 0) {
+                const t = p.title_alias;
+                if (t.includes('سلسلہ') || t.includes('شاخ') || t.includes('خاندانی') || t.includes('خاندان')) {
+                    return '';
+                }
+                return t.length > 28 ? t.substring(0, 26) + '...' : t;
+            }
+            if (p.notes) {
+                if (p.notes.includes('مزار:')) {
+                    const match = p.notes.match(/مزار:[^—,\(\)]+/);
+                    if (match) return `🕌 ${match[0].replace('مزار:', '').trim()}`;
+                }
+                if (p.notes.includes('عرف:')) {
+                    const match = p.notes.match(/عرف:[^—,\(\)]+/);
+                    if (match) return match[0].trim();
+                }
+            }
+            return '';
+        }
+
+        function computeMainLineage() {
+            mainLineageIds.clear();
+            let curr = 150; // سید طلحہ بن سلیم ہاشمی
+            while (curr !== null && nodeDataMap.has(curr)) {
+                mainLineageIds.add(curr);
+                curr = nodeDataMap.get(curr).parent_id;
+            }
+        }
+
+        function loadDatasetIntoMap(dataset) {
+            nodeDataMap.clear();
+            dataset.forEach(item => {
+                let itemCopy = {...item};
+                if (currentMode === 'shajra' && itemCopy.id === 3 && itemCopy.parent_id === null) {
+                    itemCopy.parent_id = 1; // Link Imam Ali to Prophet Muhammad ﷺ for cohesive hierarchy
+                }
+                nodeDataMap.set(item.id, itemCopy);
+            });
+        }
+
+        function populateFilterOptions() {
+            const branchSelect = document.getElementById('branch-select');
+            const genSelect = document.getElementById('generation-select');
+            const chainSelect = document.getElementById('chain-person-select');
+
+            // Unique branches
+            const branches = Array.from(new Set(currentActiveData.map(d => d.branch).filter(Boolean))).sort();
+            branchSelect.innerHTML = `<option value="ALL">تمام شاخیں</option>` + 
+                branches.map(b => `<option value="${b}">${b}</option>`).join('');
+
+            // Unique generations
+            const gens = Array.from(new Set(currentActiveData.map(d => d.generation).filter(g => g !== undefined))).sort((a, b) => a - b);
+            genSelect.innerHTML = `<option value="ALL">تمام ادوار</option>` + 
+                gens.map(g => `<option value="${g}">دور ${g}</option>`).join('');
+
+            // Chain selector
+            chainSelect.innerHTML = `<option value="">-- شخصیت منتخب کریں --</option>` + 
+                currentActiveData.map(d => `<option value="${d.id}">دور ${d.generation}: ${d.name_urdu}</option>`).join('');
+        }
+
+        function setDatasetMode(mode) {
+            currentMode = mode;
+            currentActiveData = (mode === 'shajra') ? shajraNasabData : familyPillarsData;
+            
+            const btnShajra = document.getElementById('mode-btn-shajra');
+            const btnPillars = document.getElementById('mode-btn-pillars');
+            const filterLabel = document.getElementById('filter-label');
+            const directoryTitle = document.getElementById('directory-title');
+            
+            if (mode === 'shajra') {
+                btnShajra.className = "px-2.5 py-1 rounded-lg bg-amber-600 text-amber-950 font-bold transition font-nastaliq shadow";
+                btnPillars.className = "px-2.5 py-1 rounded-lg text-amber-300 hover:text-white transition font-nastaliq";
+                filterLabel.textContent = "سلسلہ / شاخ:";
+                directoryTitle.innerHTML = `<i class="fa-solid fa-users-rectangle"></i> <span>فہرست اعضائے شجرۂ نسب (۴۶ نسلیں)</span>`;
+            } else {
+                btnPillars.className = "px-2.5 py-1 rounded-lg bg-amber-600 text-amber-950 font-bold transition font-nastaliq shadow";
+                btnShajra.className = "px-2.5 py-1 rounded-lg text-amber-300 hover:text-white transition font-nastaliq";
+                filterLabel.textContent = "سلسلہ و خاندان:";
+                directoryTitle.innerHTML = `<i class="fa-solid fa-users-rectangle"></i> <span>فہرست دیگر خاندان (266 ارکان)</span>`;
+            }
+
+            loadDatasetIntoMap(currentActiveData);
+            if (mode === 'shajra') computeMainLineage();
+            else mainLineageIds.clear();
+
+            populateFilterOptions();
+            renderDirectoryView(currentActiveData);
+            renderStatsView();
+            initD3Tree();
+
+            const selectChain = document.getElementById('chain-person-select');
+            if (selectChain && selectChain.options.length > 1) {
+                const defaultId = mode === 'shajra' ? "150" : selectChain.options[1].value;
+                selectChain.value = defaultId;
+                generateLineageChain(defaultId);
+            }
+        }
+
+        function initD3Tree() {
+            const container = document.getElementById('tree-container');
+            container.innerHTML = '';
+
+            const width = container.clientWidth || window.innerWidth;
+            const height = container.clientHeight || (window.innerHeight - 140);
+
+            svg = d3.select('#tree-container')
+                .append('svg')
+                .attr('width', '100%')
+                .attr('height', '100%')
+                .attr('viewBox', `0 0 ${width} ${height}`)
+                .attr('preserveAspectRatio', 'xMidYMid meet');
+
+            gCanvas = svg.append('g').attr('class', 'tree-canvas');
+
+            zoomBehavior = d3.zoom()
+                .scaleExtent([0.15, 3.2])
+                .on('zoom', (event) => {
+                    gCanvas.attr('transform', event.transform);
+                });
+
+            svg.call(zoomBehavior);
+
+            // Prepare stratified dataset
+            const items = Array.from(nodeDataMap.values());
+            const roots = items.filter(d => d.parent_id === null);
+
+            let stratData;
+            if (roots.length > 1) {
+                stratData = [
+                    { id: 999999, name_urdu: "شجرۂ مبارکہ", parent_id: null, generation: 0, branch: "" },
+                    ...items.map(d => d.parent_id === null ? { ...d, parent_id: 999999 } : d)
+                ];
+            } else {
+                stratData = items;
+            }
+
+            try {
+                const stratify = d3.stratify()
+                    .id(d => d.id)
+                    .parentId(d => d.parent_id);
+
+                const rootHierarchy = stratify(stratData);
+
+                const treeLayout = d3.tree()
+                    .nodeSize([240, 140])
+                    .separation((a, b) => (a.parent === b.parent ? 1.15 : 1.3));
+
+                const layoutData = treeLayout(rootHierarchy);
+                renderTreeSVG(layoutData);
+                setTimeout(fitTreeScreen, 150);
+            } catch (err) {
+                console.error("Hierarchy generation error:", err);
+            }
+        }
+
+        function renderTreeSVG(root) {
+            gCanvas.selectAll('*').remove();
+
+            const linkGenerator = d3.linkVertical()
+                .x(d => d.x)
+                .y(d => d.y);
+
+            const linksGroup = gCanvas.append('g').attr('class', 'links-layer');
+            linksGroup.selectAll('path')
+                .data(root.links().filter(d => d.source.data.id !== 999999))
+                .enter()
+                .append('path')
+                .attr('class', d => {
+                    const srcId = d.source.data.id;
+                    const tgtId = d.target.data.id;
+                    const isUserActive = activeHighlightedPathIds.has(srcId) && activeHighlightedPathIds.has(tgtId);
+                    const isMainLine = isMainLineageLit && mainLineageIds.has(srcId) && mainLineageIds.has(tgtId);
+
+                    if (isUserActive) return 'link-path active-path';
+                    if (isMainLine) return 'link-path main-lineage-link';
+                    return 'link-path';
+                })
+                .attr('d', linkGenerator);
+
+            const nodesGroup = gCanvas.append('g').attr('class', 'nodes-layer');
+            const nodeSelection = nodesGroup.selectAll('g')
+                .data(root.descendants().filter(d => d.data.id !== 999999))
+                .enter()
+                .append('g')
+                .attr('class', d => {
+                    const p = d.data;
+                    let classes = 'node-card';
+                    if (p.id === 1) classes += ' prophet-node';
+                    if (activeHighlightedPathIds.has(p.id)) classes += ' highlighted';
+                    else if (isMainLineageLit && mainLineageIds.has(p.id)) classes += ' main-lineage-node';
+                    else if (isShrineNode(p)) classes += ' shrine-node';
+                    else if (isFounderNode(p)) classes += ' founder-node';
+                    return classes;
+                })
+                .attr('transform', d => `translate(${d.x},${d.y})`)
+                .on('click', (event, d) => {
+                    event.stopPropagation();
+                    openPersonModal(d.data.id);
+                });
+
+            // Node Background Card
+            nodeSelection.append('rect')
+                .attr('class', 'node-bg')
+                .attr('x', -105)
+                .attr('y', -42)
+                .attr('width', 210)
+                .attr('height', 84);
+
+            // Badge / Era Indicator
+            nodeSelection.each(function(d) {
+                const grp = d3.select(this);
+                const p = d.data;
+                const isFounder = isFounderNode(p);
+                const isShrine = isShrineNode(p);
+
+                let badgeText = `دور ${p.generation}`;
+                let badgeColor = '#d4af37';
+                let badgeWidth = 54;
+
+                if (isShrine) {
+                    badgeText = '🕌 مزار';
+                    badgeColor = '#06b6d4';
+                    badgeWidth = 50;
+                } else if (isFounder) {
+                    badgeText = 'جدِ امجد';
+                    badgeColor = '#f59e0b';
+                    badgeWidth = 50;
+                }
+
+                grp.append('rect')
+                    .attr('x', -95)
+                    .attr('y', -37)
+                    .attr('width', badgeWidth)
+                    .attr('height', 17)
+                    .attr('rx', 8)
+                    .attr('fill', badgeColor)
+                    .attr('opacity', 0.95);
+
+                grp.append('text')
+                    .attr('x', -95 + badgeWidth/2)
+                    .attr('y', -25)
+                    .attr('text-anchor', 'middle')
+                    .attr('fill', '#0f172a')
+                    .attr('font-size', '9px')
+                    .attr('font-weight', 'bold')
+                    .text(badgeText);
+            });
+
+            // Urdu Name Rendering
+            nodeSelection.each(function(d) {
+                const nodeGroup = d3.select(this);
+                const p = d.data;
+                const nameObj = parseUrduName(p.name_urdu);
+                const subtitle = getNodeSubtitle(p);
+                
+                if (nameObj.prefix) {
+                    nodeGroup.append('text')
+                        .attr('x', 0)
+                        .attr('y', -12)
+                        .attr('text-anchor', 'middle')
+                        .attr('fill', '#fde68a')
+                        .attr('font-size', '10px')
+                        .attr('font-family', 'Noto Nastaliq Urdu, serif')
+                        .text(nameObj.prefix);
+                }
+
+                nodeGroup.append('text')
+                    .attr('x', 0)
+                    .attr('y', nameObj.prefix ? 7 : -3)
+                    .attr('text-anchor', 'middle')
+                    .attr('fill', p.id === 1 ? '#fef08a' : (isFounderNode(p) ? '#fef08a' : '#ffffff'))
+                    .attr('font-size', '13px')
+                    .attr('font-weight', 'bold')
+                    .attr('font-family', 'Noto Nastaliq Urdu, serif')
+                    .text(nameObj.core);
+
+                if (subtitle) {
+                    nodeGroup.append('text')
+                        .attr('x', 0)
+                        .attr('y', 26)
+                        .attr('text-anchor', 'middle')
+                        .attr('fill', isShrineNode(p) ? '#38bdf8' : '#34d399')
+                        .attr('font-size', '9px')
+                        .attr('font-family', 'Noto Nastaliq Urdu, serif')
+                        .text(subtitle);
+                }
+            });
+        }
+
+        function zoomIn() {
+            if (svg && zoomBehavior) svg.transition().duration(350).call(zoomBehavior.scaleBy, 1.3);
+        }
+
+        function zoomOut() {
+            if (svg && zoomBehavior) svg.transition().duration(350).call(zoomBehavior.scaleBy, 0.7);
+        }
+
+        function fitTreeScreen() {
+            if (!svg || !gCanvas) return;
+            const container = document.getElementById('tree-container');
+            const width = container.clientWidth || window.innerWidth;
+            const height = container.clientHeight || (window.innerHeight - 140);
+            
+            const bounds = gCanvas.node().getBBox();
+            if (!bounds || bounds.width === 0 || bounds.height === 0) return;
+
+            const fullWidth = bounds.width;
+            const fullHeight = bounds.height;
+            const midX = bounds.x + fullWidth / 2;
+            const midY = bounds.y + fullHeight / 2;
+
+            const scale = Math.max(0.2, Math.min(1.2, 0.88 / Math.max(fullWidth / width, fullHeight / height)));
+            const translate = [width / 2 - scale * midX, Math.max(40, height / 2 - scale * midY)];
+
+            svg.transition()
+                .duration(650)
+                .call(zoomBehavior.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale));
+        }
+
+        function highlightMainLineage() {
+            isMainLineageLit = true;
+            activeHighlightedPathIds.clear();
+            computeMainLineage();
+            initD3Tree();
+            showToast("مرکزی سلسلہ مبارکہ روشن کر دیا گیا ہے");
+        }
+
+        function clearPathHighlight() {
+            activeHighlightedPathIds.clear();
+            document.getElementById('ancestry-banner').classList.add('hidden');
+            initD3Tree();
+        }
+
+        function focusNodeInTree(personId) {
+            personId = parseInt(personId);
+            activeHighlightedPathIds.clear();
+
+            let curr = personId;
+            const pathNames = [];
+            while (curr !== null && nodeDataMap.has(curr)) {
+                activeHighlightedPathIds.add(curr);
+                const item = nodeDataMap.get(curr);
+                pathNames.push(item.name_urdu);
+                curr = item.parent_id;
+            }
+
+            initD3Tree();
+
+            // Update Ancestry Banner
+            const banner = document.getElementById('ancestry-banner');
+            const bannerText = document.getElementById('ancestry-banner-text');
+            bannerText.innerHTML = pathNames.map((name, i) => `
+                <span class="inline-block ${i === 0 ? 'text-amber-300 font-bold' : (i === pathNames.length - 1 ? 'text-emerald-400 font-bold' : 'text-slate-200')}">
+                    ${name}
+                </span>
+                ${i < pathNames.length - 1 ? '<span class="text-amber-500/60 mx-1.5">◄</span>' : ''}
+            `).join(' ');
+            banner.classList.remove('hidden');
+        }
+
+        function filterBranch(branchName) {
+            if (branchName === 'ALL') {
+                renderDirectoryView(currentActiveData);
+                initD3Tree();
+            } else {
+                const filtered = currentActiveData.filter(d => d.branch === branchName);
+                renderDirectoryView(filtered);
+                loadDatasetIntoMap(filtered);
+                initD3Tree();
+            }
+        }
+
+        function filterGeneration(genNum) {
+            if (genNum === 'ALL') {
+                renderDirectoryView(currentActiveData);
+            } else {
+                const filtered = currentActiveData.filter(d => String(d.generation) === String(genNum));
+                renderDirectoryView(filtered);
+            }
+        }
+
+        function resetTree() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('branch-select').value = 'ALL';
+            document.getElementById('generation-select').value = 'ALL';
+            setDatasetMode(currentMode);
+            showToast("شجرہ ری سیٹ کر دیا گیا ہے");
+        }
+
+        function generateLineageChain(personId) {
+            if (!personId) return;
+            personId = parseInt(personId);
+            const person = nodeDataMap.get(personId);
+            if (!person) return;
+
+            const chain = [];
+            let curr = personId;
+            while (curr !== null && nodeDataMap.has(curr)) {
+                chain.push(nodeDataMap.get(curr));
+                curr = nodeDataMap.get(curr).parent_id;
+            }
+
+            const outputBox = document.getElementById('chain-output-box');
+            const badge = document.getElementById('chain-count-badge');
+            const formattedText = document.getElementById('chain-formatted-text');
+            const stepCards = document.getElementById('chain-step-cards');
+
+            badge.textContent = `کل ${chain.length} نسلیں / واسطے`;
+
+            // Formatted Nasab Chain String
+            const chainStr = chain.map((p, idx) => {
+                const parsed = parseUrduName(p.name_urdu);
+                const title = p.title_alias ? ` (${p.title_alias})` : '';
+                if (idx === 0) return `<strong class="text-amber-300 text-lg">${parsed.core}${title}</strong>`;
+                return `${parsed.core}${title}`;
+            }).join(' <span class="text-amber-500 font-bold mx-1">بن</span> ');
+
+            formattedText.innerHTML = chainStr;
+
+            // Step-by-step reversed cards (Prophet ﷺ down to person)
+            const reversedChain = [...chain].reverse();
+            stepCards.innerHTML = reversedChain.map((p, idx) => `
+                <div class="glass-panel p-3 rounded-xl border border-amber-500/20 flex items-center justify-between hover:border-amber-400/50 transition">
+                    <div class="flex items-center gap-3">
+                        <span class="w-7 h-7 rounded-lg bg-amber-950 text-amber-300 border border-amber-500/40 flex items-center justify-center font-kufi text-xs font-bold shrink-0">
+                            ${idx + 1}
+                        </span>
+                        <div>
+                            <div class="text-sm font-bold text-amber-100 font-nastaliq">${p.name_urdu}</div>
+                            <div class="text-[11px] text-amber-300/70 font-nastaliq">${p.branch || ''} ${p.location_shrine ? '• 🕌 ' + p.location_shrine : ''}</div>
+                        </div>
+                    </div>
+                    <span class="text-[10px] text-emerald-400 font-kufi bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30">
+                        دور ${p.generation}
+                    </span>
+                </div>
+            `).join('');
+
+            outputBox.classList.remove('hidden');
+        }
+
+        function copyLineageText() {
+            const container = document.getElementById('chain-formatted-text');
+            if (!container) return;
+
+            const textToCopy = container.innerText || container.textContent;
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast("سلسلہ نسب کامیابی کے ساتھ کاپی ہو گیا ہے");
+            } catch (err) {
+                showToast("کاپی کرنے میں مسئلہ پیش آیا");
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function onSearchInput(query) {
+            const resultsBox = document.getElementById('search-results');
+            if (!query || query.trim().length === 0) {
+                resultsBox.classList.add('hidden');
+                return;
+            }
+
+            const q = query.trim().toLowerCase();
+            const matches = currentActiveData.filter(d => 
+                (d.name_urdu && d.name_urdu.toLowerCase().includes(q)) ||
+                (d.title_alias && d.title_alias.toLowerCase().includes(q)) ||
+                (d.branch && d.branch.toLowerCase().includes(q)) ||
+                (d.notes && d.notes.toLowerCase().includes(q)) ||
+                (d.location_shrine && d.location_shrine.toLowerCase().includes(q))
+            ).slice(0, 8);
+
+            if (matches.length === 0) {
+                resultsBox.innerHTML = `<div class="p-3 text-xs text-amber-300/60 font-nastaliq text-center">کوئی شخصیت نہیں ملی</div>`;
+            } else {
+                resultsBox.innerHTML = matches.map(d => `
+                    <div onclick="selectSearchResult(${d.id})" class="p-2.5 hover:bg-slate-800 cursor-pointer border-b border-amber-500/10 flex items-center justify-between transition">
+                        <div>
+                            <div class="text-xs font-bold text-amber-200 font-nastaliq">${d.name_urdu}</div>
+                            <div class="text-[10px] text-amber-400/60 font-nastaliq">${d.branch || ''}</div>
+                        </div>
+                        <span class="text-[10px] text-amber-300 font-kufi">دور ${d.generation}</span>
+                    </div>
+                `).join('');
+            }
+            resultsBox.classList.remove('hidden');
+        }
+
+        function selectSearchResult(id) {
+            document.getElementById('search-results').classList.add('hidden');
+            switchTab('tree');
+            focusNodeInTree(id);
+            openPersonModal(id);
+        }
+
+        function renderDirectoryView(dataList) {
+            const grid = document.getElementById('directory-grid');
+            const countLabel = document.getElementById('directory-count');
+
+            countLabel.textContent = `${dataList.length} شخصیات موجود ہیں`;
+
+            grid.innerHTML = dataList.map(item => {
+                const nameObj = parseUrduName(item.name_urdu);
+                const hasShrine = isShrineNode(item);
+                const isFounder = isFounderNode(item);
+                const subtitle = getNodeSubtitle(item);
+
+                let cardBorderBg = '';
+                if (isFounder) cardBorderBg = 'border-amber-400/80 bg-purple-950/30';
+                else if (hasShrine) cardBorderBg = 'border-cyan-400/70 bg-cyan-950/30';
+
+                return `
+                    <div class="shajra-card p-4 rounded-2xl flex flex-col justify-between shadow-xl ${cardBorderBg}">
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <span class="bg-amber-950 text-amber-300 px-2.5 py-0.5 rounded-full text-[10px] font-bold border border-amber-500/30 font-kufi">
+                                    ${isFounder ? 'جدِ امجد • دور ' + item.generation : (hasShrine ? '🕌 مزار • دور ' + item.generation : 'دور ' + item.generation)}
+                                </span>
+                                <span class="text-[10px] text-amber-400/80 font-nastaliq">${item.branch || ''}</span>
+                            </div>
+                            
+                            <h3 class="text-base font-bold text-amber-100 font-nastaliq mt-1">
+                                ${nameObj.prefix ? `<span class="text-xs text-amber-300 font-normal block">${nameObj.prefix}</span>` : ''}
+                                <span class="text-amber-200">${nameObj.core}</span>
+                                ${nameObj.suffix ? `<span class="text-xs text-emerald-400 font-normal block">${nameObj.suffix}</span>` : ''}
+                            </h3>
+
+                            ${subtitle ? `<p class="text-xs ${hasShrine ? 'text-cyan-400' : 'text-emerald-400'} font-nastaliq mt-1"><i class="fa-solid fa-feather-pointed text-[10px] ml-1"></i>${subtitle}</p>` : ''}
+                            
+                            <div class="mt-3 pt-2 border-t border-amber-500/10 text-xs text-amber-200/80 font-nastaliq space-y-1">
+                                <div><strong class="text-amber-400">والد / سرپرست:</strong> ${item.father_urdu}</div>
+                                ${item.location_shrine ? `<div><strong class="text-cyan-400">🕌 مزار/مسکن:</strong> ${item.location_shrine}</div>` : ''}
+                                ${item.notes ? `<div class="text-[11px] text-amber-300/70 truncate"><strong class="text-amber-400">تفصیل:</strong> ${item.notes}</div>` : ''}
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-2 flex gap-2">
+                            <button onclick="openPersonModal(${item.id})" class="flex-1 py-1.5 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-200 text-xs font-nastaliq border border-amber-500/30 transition">
+                                تفاصیل
+                            </button>
+                            <button onclick="switchTab('tree'); focusNodeInTree(${item.id});" class="py-1.5 px-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-amber-950 font-bold text-xs font-nastaliq transition shadow">
+                                نقشہ میں دیکھیں
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderStatsView() {
+            const branchesMap = new Map();
+            currentActiveData.forEach(d => {
+                const b = d.branch || 'غیر مشخص';
+                branchesMap.set(b, (branchesMap.get(b) || 0) + 1);
+            });
+
+            document.getElementById('stat-total-count').textContent = currentActiveData.length;
+            const maxGen = Math.max(...currentActiveData.map(d => d.generation || 1));
+            document.getElementById('stat-total-gens').textContent = maxGen;
+            document.getElementById('stat-branches-count').textContent = branchesMap.size;
+
+            const list = document.getElementById('branches-stats-list');
+            list.innerHTML = Array.from(branchesMap.entries()).map(([branch, count]) => `
+                <div class="flex items-center justify-between p-3.5 rounded-xl bg-slate-950/70 border border-amber-500/20">
+                    <span class="text-amber-200 font-nastaliq">${branch}</span>
+                    <span class="bg-amber-950 text-amber-300 font-bold px-3 py-1 rounded-full text-xs border border-amber-500/30 font-kufi">
+                        ${count} ارکان
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        function openPersonModal(personId) {
+            personId = parseInt(personId);
+            const person = nodeDataMap.get(personId);
+            if (!person) return;
+
+            currentSelectedPersonId = personId;
+
+            document.getElementById('modal-gen-badge').textContent = `دور مبارک: ${person.generation}`;
+            document.getElementById('modal-name-display').textContent = person.name_urdu;
+            document.getElementById('modal-title-alias').textContent = person.title_alias ? `لقب / عرفیت / خصوصیت: ${person.title_alias}` : '';
+            document.getElementById('modal-father-name').textContent = person.father_urdu;
+            document.getElementById('modal-branch').textContent = person.branch || 'سلسلہ سادات';
+
+            const shrineBox = document.getElementById('modal-shrine-box');
+            if (person.location_shrine) {
+                document.getElementById('modal-shrine-text').textContent = person.location_shrine;
+                shrineBox.classList.remove('hidden');
+            } else {
+                shrineBox.classList.add('hidden');
+            }
+
+            document.getElementById('modal-notes').textContent = person.notes || 'معلومات دستیاب نہیں';
+
+            document.getElementById('modal-btn-trace').onclick = () => {
+                closePersonModal();
+                switchTab('tree');
+                focusNodeInTree(personId);
+            };
+
+            document.getElementById('modal-btn-chain').onclick = () => {
+                closePersonModal();
+                switchTab('chain');
+                document.getElementById('chain-person-select').value = personId;
+                generateLineageChain(personId);
+            };
+
+            document.getElementById('person-modal').classList.remove('hidden');
+        }
+
+        function closePersonModal() {
+            document.getElementById('person-modal').classList.add('hidden');
+        }
+
+        function switchTab(tabName) {
+            const views = ['tree', 'chain', 'directory', 'stats'];
+            views.forEach(v => {
+                const viewEl = document.getElementById(`view-${v}`);
+                const btnEl = document.getElementById(`btn-${v}-view`);
+                
+                if (v === tabName) {
+                    viewEl.classList.remove('hidden');
+                    btnEl.className = "snap-start px-3 py-1.5 rounded-xl text-xs md:text-sm font-medium bg-amber-600 text-amber-950 font-bold shadow-md hover:bg-amber-500 transition flex items-center gap-1.5 whitespace-nowrap shrink-0";
+                } else {
+                    viewEl.classList.add('hidden');
+                    btnEl.className = "snap-start px-3 py-1.5 rounded-xl text-xs md:text-sm font-medium bg-slate-900 text-amber-200 hover:bg-slate-800 transition flex items-center gap-1.5 border border-amber-500/30 whitespace-nowrap shrink-0";
+                }
+            });
+
+            if (tabName === 'tree') {
+                setTimeout(fitTreeScreen, 120);
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast-message');
+            document.getElementById('toast-text').textContent = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+            }, 3200);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setDatasetMode('shajra');
+        });
+    </script>
+</body>
+</html>
