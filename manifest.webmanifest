@@ -1,0 +1,56 @@
+{
+  "name": "شجرۂ طیبہ ساداتِ ہاشمیہ چشتیہ",
+  "short_name": "شجرۂ طیبہ",
+  "description": "ساداتِ ہاشمیہ چشتیہ کا مکمل شجرۂ نسب — خاتم النبیین حضرت محمد مصطفیٰ ﷺ سے موجودہ دور تک ۴۶ نسلوں کا تعاملی نقشہ، سلسلہ نسب، ڈائریکٹری اور احصائیات۔",
+  "lang": "ur",
+  "dir": "rtl",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "any",
+  "background_color": "#060b17",
+  "theme_color": "#060b17",
+  "categories": ["education", "reference", "books"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "نقشۂ شجرہ",
+      "short_name": "نقشہ",
+      "url": "./#/tree",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "سلسلہ نسب",
+      "short_name": "سلسلہ",
+      "url": "./#/chain",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "فہرست ڈائریکٹری",
+      "short_name": "فہرست",
+      "url": "./#/directory",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
